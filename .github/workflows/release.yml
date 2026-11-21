@@ -22,14 +22,14 @@ jobs:
             os: macos-latest
             rust_target: aarch64-apple-darwin
             runtime_platform: macos-arm64
-            bundle_args: --bundles dmg --target aarch64-apple-darwin
+            bundle_args: --bundles app,dmg --target aarch64-apple-darwin
             bundle_dir: dmg
             artifact_name: LocalHumanizer-macOS.dmg
           - platform_label: macos-x64
             os: macos-latest
             rust_target: x86_64-apple-darwin
             runtime_platform: macos-x64
-            bundle_args: --bundles dmg --target x86_64-apple-darwin
+            bundle_args: --bundles app,dmg --target x86_64-apple-darwin
             bundle_dir: dmg
             artifact_name: LocalHumanizer-macOS-x64.dmg
           - platform_label: windows-x64
@@ -73,6 +73,23 @@ jobs:
         env:
           CI: "true"
         run: npx tauri build --ci ${{ matrix.bundle_args }}
+
+      - name: Ad-hoc sign macOS app bundle and rebuild DMG (when unsigned)
+        if: runner.os == 'macOS' && env.APPLE_SIGNING_IDENTITY == ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP_PATH="src-tauri/target/${{ matrix.rust_target }}/release/bundle/macos/Local Humanizer.app"
+          DMG_DIR="src-tauri/target/${{ matrix.rust_target }}/release/bundle/dmg"
+          codesign --force --deep --sign - "$APP_PATH"
+          codesign --verify --deep --strict "$APP_PATH"
+          STAGING_DIR="$(mktemp -d /tmp/lh-dmg-stage.XXXXXX)"
+          trap 'rm -rf "$STAGING_DIR"' EXIT
+          cp -R "$APP_PATH" "$STAGING_DIR/"
+          ln -s /Applications "$STAGING_DIR/Applications"
+          mkdir -p "$DMG_DIR"
+          rm -f "$DMG_DIR"/*.dmg
+          hdiutil create -volname "Local Humanizer" -srcfolder "$STAGING_DIR" -ov -format UDZO "$DMG_DIR/${{ matrix.artifact_name }}"
 
       - name: Stage artifact and compute SHA-256
         shell: bash

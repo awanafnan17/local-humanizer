@@ -23,12 +23,15 @@
 
 ## 2. Local Packaging, Prerelease `v0.1.0-rc.1`, Live `.app` & CI/CD Evidence
 
-- **GitHub Prerelease (`v0.1.0-rc.1`):** `https://github.com/awanafnan17/local-humanizer/releases/tag/v0.1.0-rc.1` (installer binaries built by Run `44890685142` at commit `6d52c12c2d34ef893662829a2c1fb67db13537ae`; commits after `6d52c12` touch only CI unit-test fixtures and release metadata/docs with zero runtime code changes)
-- **Local Pre-Release Host Artifact (`macOS arm64`):** `dist-release/LocalHumanizer-macOS.dmg` (`1,119,379,933` bytes)
-- **Local SHA-256:** `53cb62afe1076b5e358b84460545969c0b70f63c13fe2eabbe5403d57c89a44d` (`shasum -a 256 -c dist-release/SHA256SUMS.txt` -> `OK`)
-- **Code Signing:** `codesign --verify --deep --strict "src-tauri/target/release/bundle/macos/Local Humanizer.app"` -> exit `0` (ad-hoc signature)
-- **DMG Mount Check:** `hdiutil attach` verified `Local Humanizer.app` + `Applications -> /Applications`
-- **Live `.app` Process & Resource Verification:**
+- **GitHub Prerelease (`v0.1.0-rc.1`):** `https://github.com/awanafnan17/local-humanizer/releases/tag/v0.1.0-rc.1` (compiled binaries built at commit `6d52c12c2d34ef893662829a2c1fb67db13537ae`; commits after `6d52c12` touch only CI unit-test fixtures, `release.yml` ad-hoc signing/tag guards, and release metadata/docs with zero runtime code changes)
+- **Final Verified Prerelease `v0.1.0-rc.1` Installers (`SHA256SUMS.txt`):**
+  - `LocalHumanizer-Windows-Setup.exe` (`windows-x64` NSIS from CI Run [`44890685142`](https://github.com/awanafnan17/local-humanizer/actions/runs/44890685142), `1,101,619,483` bytes, SHA-256 `1a56b2df673b81da5fdb9dfd11e55f82c7ed6be446ea4e0aa176b8777bce3807`; `7zz t` `Everything is Ok`, 46 files, GGUF SHA-256 verified)
+  - `LocalHumanizer-macOS.dmg` (`macos-arm64`, `1,119,379,933` bytes, SHA-256 `53cb62afe1076b5e358b84460545969c0b70f63c13fe2eabbe5403d57c89a44d`; ad-hoc signed via `codesign --force --deep --sign -` and verified with `codesign --verify --deep --strict` + `hdiutil verify`)
+  - `LocalHumanizer-macOS-x64.dmg` (`macos-x64` bundle from CI Run `44890685142`, ad-hoc signed via `codesign --force --deep --sign -` and repackaged UDZO DMG, `1,119,728,753` bytes, SHA-256 `0e415738a658d2d3b0b34f939b5a598a7e3bc9d5fa9424b92c51a0c1ae84461a`; verified with `codesign --verify --deep --strict` + `hdiutil verify`)
+  - *Note on macOS bundle signatures:* CI Run `44890685142` initially emitted macOS `.app` bundles without `Contents/_CodeSignature/CodeResources` (`release.yml` previously omitted `codesign --force --deep --sign -`). Both `v0.1.0-rc.1` macOS DMGs were ad-hoc signed and verified with `codesign --verify --deep --strict`, and `.github/workflows/release.yml` was updated to perform the same ad-hoc signing step on unsigned CI runs.
+- **Code Signing:** `codesign --verify -vvvv --deep --strict` -> `valid on disk`, `satisfies its Designated Requirement` (ad-hoc signature on both `macos-arm64` and `macos-x64` `.app` bundles)
+- **DMG Mount Check:** `hdiutil attach` verified `Local Humanizer.app` + `Applications -> /Applications` on both `LocalHumanizer-macOS.dmg` and `LocalHumanizer-macOS-x64.dmg`
+- **Live `.app` Process & Resource Verification (`macos-arm64`):**
   - `lsof` confirmed `llama-server`, all `10` `.dylib` files, and `Qwen3-1.7B-Q4_K_M.gguf` loaded from `Local Humanizer.app/Contents/Resources/resources/`
   - Loopback socket `127.0.0.1:58160 (LISTEN)` with `/v1/models` returning HTTP `401` without bearer token (`GET /health` returned `200`)
   - Second invocation preserved single `local-humanizer` + single `llama-server` PID
@@ -37,10 +40,10 @@
   - `Frontend (Audit, Typecheck, Build, Unit, Playwright UI, E2E)`: `PASS` (`1m1s`)
   - `Rust Backend (Check, Clippy, Test, Audit)`: `PASS` (`3m43s`)
   - `Privacy, Notices & Git Hygiene`: `PASS` (`6s`)
-- **GitHub Actions Release Matrix (`release.yml`, Run [`44890685142`](https://github.com/awanafnan17/local-humanizer/actions/runs/44890685142), commit `6d52c12c2d34ef893662829a2c1fb67db13537ae`):**
+- **GitHub Actions Release Matrix (`release.yml`, Run [`44890685142`](https://github.com/awanafnan17/local-humanizer/actions/runs/44890685142), commit `6d52c12c2d34ef893662829a2c1fb67db13537ae` — pre-ad-hoc-re-sign raw artifact SHA-256s):**
   - `LocalHumanizer-Windows-Setup.exe` (`windows-x64` NSIS, `16m21s`, Artifact `14701943358`, SHA-256 `1a56b2df673b81da5fdb9dfd11e55f82c7ed6be446ea4e0aa176b8777bce3807`)
-  - `LocalHumanizer-macOS.dmg` (`macos-arm64`, `9m40s`, Artifact `14702022270`, SHA-256 `66d0836df05362e5ec8bbd35176207313e3f2972fd50d10bce048da38caff391`)
-  - `LocalHumanizer-macOS-x64.dmg` (`macos-x64`, `8m38s`, Artifact `14701803381`, SHA-256 `a4f000885772a269a262ce5f2e6297ba7c07d9b72e7ab64744301feb353cf816`)
+  - `LocalHumanizer-macOS.dmg` (`macos-arm64` unsigned CI build, `9m40s`, Artifact `14702022270`, SHA-256 `66d0836df05362e5ec8bbd35176207313e3f2972fd50d10bce048da38caff391`)
+  - `LocalHumanizer-macOS-x64.dmg` (`macos-x64` unsigned CI build, `8m38s`, Artifact `14701803381`, SHA-256 `a4f000885772a269a262ce5f2e6297ba7c07d9b72e7ab64744301feb353cf816`)
 
 ---
 

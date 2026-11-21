@@ -28,6 +28,10 @@ All notable milestone deliverables and verified changes to **Local Humanizer** a
 - Added `.github/workflows/ci.yml` and `.github/workflows/release.yml`, updated `THIRD_PARTY_NOTICES.md` with complete direct/transitive Crate & npm disclosures, and authored the full 14-file documentation suite.
 
 ### Prerelease `v0.1.0-rc.1` Assets & Deferred Checks
-- Published GitHub Prerelease [`v0.1.0-rc.1`](https://github.com/awanafnan17/local-humanizer/releases/tag/v0.1.0-rc.1) packaging CI Run [`44890685142`](https://github.com/awanafnan17/local-humanizer/actions/runs/44890685142) (`6d52c12c2d34ef893662829a2c1fb67db13537ae`) installers (`LocalHumanizer-Windows-Setup.exe`, `LocalHumanizer-macOS.dmg`, `LocalHumanizer-macOS-x64.dmg`) with verified `SHA256SUMS.txt`.
+- Published GitHub Prerelease [`v0.1.0-rc.1`](https://github.com/awanafnan17/local-humanizer/releases/tag/v0.1.0-rc.1) from compiled binaries built at `6d52c12c2d34ef893662829a2c1fb67db13537ae` (CI Run [`44890685142`](https://github.com/awanafnan17/local-humanizer/actions/runs/44890685142)) with verified `SHA256SUMS.txt`:
+  - `LocalHumanizer-Windows-Setup.exe` (`1,101,619,483` B, SHA-256 `1a56b2df673b81da5fdb9dfd11e55f82c7ed6be446ea4e0aa176b8777bce3807`)
+  - `LocalHumanizer-macOS.dmg` (ad-hoc signed `arm64`, `1,119,379,933` B, SHA-256 `53cb62afe1076b5e358b84460545969c0b70f63c13fe2eabbe5403d57c89a44d`)
+  - `LocalHumanizer-macOS-x64.dmg` (ad-hoc signed `x86_64`, `1,119,728,753` B, SHA-256 `0e415738a658d2d3b0b34f939b5a598a7e3bc9d5fa9424b92c51a0c1ae84461a`)
+- Updated `.github/workflows/release.yml` to run `codesign --force --deep --sign -` on macOS builds when `APPLE_SIGNING_IDENTITY` is unset, after verifying that CI Run `44890685142`'s unsigned macOS bundles lacked `Contents/_CodeSignature/CodeResources`.
 - **M6 E2E Verification (`DEFERRED / NOT COMPLETED`):** Opaque-box E2E Tiers 1–5, `>=25`-doc writing-quality eval, `30` adversarial tests, Gates A–H, and independent Victory Audit deferred for this prerelease.
 - **Signing & Platform Hardware (`BLOCKED / UNVERIFIED`):** Apple Developer ID signing/notarization, physical Windows native runtime QA, and bare-metal Intel macOS hardware QA.
