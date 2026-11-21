@@ -4,7 +4,7 @@
 
 Built with **Tauri v2 (Rust)**, **React 19 + TypeScript + Tailwind CSS v4**, and a bundled offline **`llama.cpp` (`b12600`)** inference runtime powered by quantized **GGUF** models (`Qwen3 1.7B Q4_K_M` bundled out of the box).
 
-> **Project Status (`v0.1.0`):** Milestones M1–M4 (clean-room scaffold, 6-model benchmark evaluation, Rust lifecycle & long-document engine, and two-pane desktop UI) are verified; M5 packaging, CI/CD, and documentation are in progress / verified per [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md); formal M6 opaque-box E2E verification (`>=25`-document evaluation suite, 30 adversarial tests, Gates A–H) is **`PENDING`**. Local macOS builds use ad-hoc code signing only (Apple Developer ID signing/notarization is **`BLOCKED / UNVERIFIED`**); physical Windows native runtime QA and bare-metal Intel macOS hardware QA are **`BLOCKED / UNVERIFIED`**.
+> **Project Status (`v0.1.0-rc.1` Prerelease):** Available at [Releases (`v0.1.0-rc.1`)](https://github.com/awanafnan17/local-humanizer/releases/tag/v0.1.0-rc.1). Milestones M1–M5 (clean-room scaffold, 6-model benchmark evaluation, Rust lifecycle & long-document engine, two-pane desktop UI, macOS/Windows packaging, CI/CD, and documentation) are verified per [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Formal M6 opaque-box E2E verification (`>=25`-document evaluation suite, 30 adversarial tests, Gates A–H, Victory Audit) is **`DEFERRED / UNVERIFIED`** for this prerelease. Local and CI macOS builds use ad-hoc code signing only (Apple Developer ID signing/notarization is **`BLOCKED / UNVERIFIED`**); physical Windows native runtime QA and bare-metal Intel macOS hardware QA are **`BLOCKED / UNVERIFIED`**.
 
 ---
 

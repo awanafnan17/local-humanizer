@@ -1,0 +1,154 @@
+name: Publish Prerelease from Existing Artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Workflow run ID containing built installer artifacts"
+        required: true
+        default: "44890685142"
+        type: string
+      tag:
+        description: "Prerelease tag name (e.g. v0.1.0-rc.1)"
+        required: true
+        default: "v0.1.0-rc.1"
+        type: string
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    name: Publish Prerelease (${{ inputs.tag }})
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RUN_ID: ${{ inputs.run_id }}
+      TAG: ${{ inputs.tag }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download existing CI installer artifacts
+        run: |
+          set -euo pipefail
+          rm -rf raw-artifacts release-assets
+          mkdir -p raw-artifacts release-assets
+          gh run download "$RUN_ID" \
+            --repo "${{ github.repository }}" \
+            --dir raw-artifacts
+          find raw-artifacts -type f -name 'LocalHumanizer-*' -exec mv {} release-assets/ \;
+          ls -lh release-assets
+          for f in LocalHumanizer-Windows-Setup.exe LocalHumanizer-macOS.dmg LocalHumanizer-macOS-x64.dmg; do
+            test -f "release-assets/$f"
+            sz="$(stat -c '%s' "release-assets/$f")"
+            echo "$f size=$sz bytes"
+            test "$sz" -gt 1000000000
+          done
+
+      - name: Compute and verify SHA256SUMS.txt
+        run: |
+          set -euo pipefail
+          cd release-assets
+          sha256sum \
+            LocalHumanizer-Windows-Setup.exe \
+            LocalHumanizer-macOS.dmg \
+            LocalHumanizer-macOS-x64.dmg > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+          sha256sum -c SHA256SUMS.txt
+          if [ "$RUN_ID" = "44890685142" ]; then
+            grep -q "^1a56b2df673b81da5fdb9dfd11e55f82c7ed6be446ea4e0aa176b8777bce3807  LocalHumanizer-Windows-Setup.exe$" SHA256SUMS.txt
+            grep -q "^66d0836df05362e5ec8bbd35176207313e3f2972fd50d10bce048da38caff391  LocalHumanizer-macOS.dmg$" SHA256SUMS.txt
+            grep -q "^a4f000885772a269a262ce5f2e6297ba7c07d9b72e7ab64744301feb353cf816  LocalHumanizer-macOS-x64.dmg$" SHA256SUMS.txt
+            echo "Verified exact Run 44890685142 SHA-256 digests."
+          fi
+
+      - name: Generate prerelease notes
+        run: |
+          set -euo pipefail
+          WIN_SIZE="$(stat -c '%s' release-assets/LocalHumanizer-Windows-Setup.exe)"
+          ARM_SIZE="$(stat -c '%s' release-assets/LocalHumanizer-macOS.dmg)"
+          X64_SIZE="$(stat -c '%s' release-assets/LocalHumanizer-macOS-x64.dmg)"
+          WIN_SHA="$(awk '/LocalHumanizer-Windows-Setup\.exe$/ {print $1}' release-assets/SHA256SUMS.txt)"
+          ARM_SHA="$(awk '/LocalHumanizer-macOS\.dmg$/ {print $1}' release-assets/SHA256SUMS.txt)"
+          X64_SHA="$(awk '/LocalHumanizer-macOS-x64\.dmg$/ {print $1}' release-assets/SHA256SUMS.txt)"
+          cat > release-notes.md <<EOF
+          # Local Humanizer ${TAG} (Prerelease)
+
+          Free, privacy-first, 100% offline AI writing and paraphrasing desktop application for Windows and macOS.
+          Built with Tauri v2 (Rust), React 19 + TypeScript + Tailwind CSS v4, bundled \`llama.cpp\` (\`b12600\`), and bundled quantized GGUF model \`Qwen3-1.7B-Q4_K_M.gguf\` (Apache-2.0).
+
+          ## Source & Build Traceability
+
+          - **Installer binaries built at commit:** \`6d52c12c2d34ef893662829a2c1fb67db13537ae\`
+          - **GitHub Actions Release build run:** https://github.com/awanafnan17/local-humanizer/actions/runs/${RUN_ID}
+          - **Release tag (\`${TAG}\`) commit:** \`${GITHUB_SHA}\` (only CI unit-test helper commit \`afb0508\` and documentation/release-metadata commits were added after \`6d52c12\`; zero runtime source changes)
+
+          ## Release Assets
+
+          | File | Platform / Arch | Size (bytes) | SHA-256 |
+          |---|---|---:|---|
+          | \`LocalHumanizer-Windows-Setup.exe\` | Windows 10/11 (\`x86_64\` NSIS) | ${WIN_SIZE} | \`${WIN_SHA}\` |
+          | \`LocalHumanizer-macOS.dmg\` | macOS Apple Silicon (\`arm64\`) | ${ARM_SIZE} | \`${ARM_SHA}\` |
+          | \`LocalHumanizer-macOS-x64.dmg\` | macOS Intel (\`x86_64\`) | ${X64_SIZE} | \`${X64_SHA}\` |
+          | \`SHA256SUMS.txt\` | Checksums | — | Verified with \`sha256sum -c\` |
+
+          ## Verified Scope (M1–M5)
+
+          - **M1 (Clean-Room Audit):** Stripped cloud LLM adapters, tunnels, hosted detectors, and telemetry; preserved MIT & third-party licenses in [THIRD_PARTY_NOTICES.md](https://github.com/awanafnan17/local-humanizer/blob/main/THIRD_PARTY_NOTICES.md).
+          - **M2 (Model Evaluation):** Evaluated 6 GGUF candidates on an 8 GiB Apple M2 host; selected bundled \`Qwen3-1.7B-Q4_K_M.gguf\` (Apache-2.0) after \`3,102\`-word CPU & Metal verification (\`38/38\` invariants).
+          - **M3 (Rust Engine & Lifecycle):** \`cargo clippy --all-targets\` exit \`0\`; \`69/69\` unit tests; \`3/3\` live \`llama-server\` integration tests (\`3,766\` words, auth, process reaping).
+          - **M4 (Desktop UI):** \`npm run typecheck && npm run build\` exit \`0\`; \`8/8\` unit tests; \`13/13\` Playwright UI groups.
+          - **M5 (Packaging & CI/CD):** Local Apple Silicon \`.app\` / DMG verified (bundled model & runtime, loopback \`127.0.0.1\` + bearer auth, single-instance lock, \`SIGTERM\` reaping); GitHub Actions CI run [44891110914](https://github.com/awanafnan17/local-humanizer/actions/runs/44891110914) and Release matrix run [44890685142](https://github.com/awanafnan17/local-humanizer/actions/runs/44890685142) passed.
+
+          ## Unverified / Deferred / Blocked QA Limitations
+
+          - **M6 Opaque-Box E2E Suite (\`DEFERRED / NOT COMPLETED\`):** Full \`>=25\`-document writing-quality evaluation suite, \`30\` adversarial test scenarios, Tier-5 hardening, formal Gates A–H sign-off, and independent Victory Audit were deferred for this prerelease.
+          - **Physical Windows \`x86_64\` Runtime (\`BLOCKED / UNVERIFIED\`):** Built on GitHub \`windows-latest\`, not yet tested on physical Windows hardware (NSIS install flow, Start Menu / Desktop shortcut, \`llama-server.exe\`, Job Object reaping, clean uninstall).
+          - **Bare-Metal Intel macOS \`x86_64\` (\`BLOCKED / UNVERIFIED\`):** Cross-compiled on CI; not yet executed on physical Intel Mac hardware.
+          - **Code Signing & Notarization (\`BLOCKED / UNVERIFIED\`):** macOS builds are ad-hoc signed only (not Apple Developer ID notarized; Gatekeeper requires explicit allowance), and the Windows NSIS installer is unsigned (SmartScreen warning expected). See [INSTALLATION.md](https://github.com/awanafnan17/local-humanizer/blob/main/INSTALLATION.md).
+
+          ## Documentation
+
+          - [INSTALLATION.md](https://github.com/awanafnan17/local-humanizer/blob/main/INSTALLATION.md)
+          - [FINAL_VERIFICATION_REPORT.md](https://github.com/awanafnan17/local-humanizer/blob/main/FINAL_VERIFICATION_REPORT.md)
+          - [SECURITY.md](https://github.com/awanafnan17/local-humanizer/blob/main/SECURITY.md)
+          - [THIRD_PARTY_NOTICES.md](https://github.com/awanafnan17/local-humanizer/blob/main/THIRD_PARTY_NOTICES.md)
+          EOF
+          python3 -c '
+          from pathlib import Path
+          p = Path("release-notes.md")
+          lines = [ln[10:] if ln.startswith("          ") else ln for ln in p.read_text().splitlines()]
+          p.write_text("\n".join(lines) + "\n")
+          '
+          cat release-notes.md
+
+      - name: Create or update GitHub Prerelease
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release upload "$TAG" \
+              --repo "${{ github.repository }}" \
+              --clobber \
+              release-assets/LocalHumanizer-Windows-Setup.exe \
+              release-assets/LocalHumanizer-macOS.dmg \
+              release-assets/LocalHumanizer-macOS-x64.dmg \
+              release-assets/SHA256SUMS.txt
+            gh release edit "$TAG" \
+              --repo "${{ github.repository }}" \
+              --prerelease \
+              --title "Local Humanizer ${TAG} (Prerelease)" \
+              --notes-file release-notes.md
+          else
+            gh release create "$TAG" \
+              --repo "${{ github.repository }}" \
+              --prerelease \
+              --target "${GITHUB_SHA}" \
+              --title "Local Humanizer ${TAG} (Prerelease)" \
+              --notes-file release-notes.md \
+              release-assets/LocalHumanizer-Windows-Setup.exe \
+              release-assets/LocalHumanizer-macOS.dmg \
+              release-assets/LocalHumanizer-macOS-x64.dmg \
+              release-assets/SHA256SUMS.txt
+          fi

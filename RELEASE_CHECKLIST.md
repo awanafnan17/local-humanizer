@@ -38,12 +38,13 @@
 - [x] `PASS` — Public GitHub repository `https://github.com/awanafnan17/local-humanizer` pushed and `.github/workflows/ci.yml` passed remotely (Run [`44891110914`](https://github.com/awanafnan17/local-humanizer/actions/runs/44891110914): `Frontend` `1m1s`, `Rust Backend` `3m43s`, `Privacy, Notices & Git Hygiene` `6s`).
 - [x] `PASS` — `.github/workflows/release.yml` (`workflow_dispatch`) cross-platform matrix verified (Run [`44890685142`](https://github.com/awanafnan17/local-humanizer/actions/runs/44890685142): `windows-x64` NSIS `LocalHumanizer-Windows-Setup.exe` `16m21s`, `macos-arm64` `LocalHumanizer-macOS.dmg` `9m40s`, `macos-x64` `LocalHumanizer-macOS-x64.dmg` `8m38s`).
 
-## 6. M6 E2E & Adversarial Release Gates
+## 6. Prerelease & M6 E2E / Adversarial Release Gates
 
-- [ ] `PENDING` — Opaque-box E2E Tiers 1–4 (`tests/e2e/`).
-- [ ] `PENDING` — Reproducible `>=25`-document writing-quality evaluation suite.
-- [ ] `PENDING` — `30` adversarial tests + Tier-5 Challenger-initiated hardening.
-- [ ] `PENDING` — Formal Gates A–H sign-off & tagged GitHub Release (`v0.1.0`).
+- [x] `PASS (Prerelease)` — GitHub Prerelease `v0.1.0-rc.1` (`https://github.com/awanafnan17/local-humanizer/releases/tag/v0.1.0-rc.1`) published from verified CI Run `44890685142` (`6d52c12c2d34ef893662829a2c1fb67db13537ae`) with `SHA256SUMS.txt` and explicit unverified QA limitations.
+- [ ] `UNVERIFIED / DEFERRED` — Opaque-box E2E Tiers 1–4 (`tests/e2e/`).
+- [ ] `UNVERIFIED / DEFERRED` — Reproducible `>=25`-document writing-quality evaluation suite.
+- [ ] `UNVERIFIED / DEFERRED` — `30` adversarial tests + Tier-5 Challenger-initiated hardening + Victory Audit.
+- [ ] `UNVERIFIED / DEFERRED` — Formal Gates A–H sign-off & stable GitHub Release (`v0.1.0`).
 
 ## 7. Platform & Signing Blocks (`BLOCKED / UNVERIFIED`)
 
