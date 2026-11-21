@@ -1,0 +1,138 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend (Audit, Typecheck, Build, Unit, Playwright UI, E2E)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Setup Python 3.12 (for M6 E2E suite when present)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit npm dependencies
+        run: npm audit --audit-level=high
+
+      - name: TypeScript typecheck
+        run: npm run typecheck
+
+      - name: Production frontend build
+        run: npm run build
+
+      - name: Run frontend unit tests
+        run: npm run test:unit
+
+      - name: Install ephemeral Playwright + Chromium
+        run: npm install --no-save playwright && npx playwright install chromium --with-deps
+
+      - name: Run Playwright UI suite
+        run: npm run test:ui
+
+      - name: Run M6 E2E suite (when committed)
+        run: |
+          if [ -f tests/e2e/runner.py ]; then
+            pip install -q pytest && python3 tests/e2e/runner.py --validate-suite && python3 tests/e2e/runner.py --mock --tier all --adversarial
+          else
+            echo "tests/e2e/runner.py not yet committed (scheduled for M6)"
+          fi
+
+  rust:
+    name: Rust Backend (Check, Clippy, Test, Audit)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Tauri v2 Linux system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libxdo-dev \
+            libssl-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libgtk-3-dev
+
+      - name: Setup Rust toolchain with Clippy
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Cargo check (all targets)
+        run: cargo check --manifest-path src-tauri/Cargo.toml --all-targets
+
+      - name: Cargo clippy (all targets)
+        run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets
+
+      - name: Run Rust unit tests
+        run: cargo test --manifest-path src-tauri/Cargo.toml
+
+      - name: Install cargo-audit
+        uses: taiki-e/install-action@cargo-audit
+
+      - name: Audit Cargo.lock
+        run: cargo audit --file src-tauri/Cargo.lock
+
+  privacy-and-hygiene:
+    name: Privacy, Notices & Git Hygiene
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify no forbidden binaries or build outputs are tracked
+        run: |
+          if git ls-files | grep -E '^(dist-release/|node_modules/|src-tauri/target/|dist/|\.agents/)|\.gguf$|src-tauri/resources/runtime/(macos-|win-|linux-)'; then
+            echo "ERROR: Forbidden file tracked in git!"
+            exit 1
+          fi
+
+      - name: Verify notices parity and bundled license texts
+        run: |
+          cmp -s THIRD_PARTY_NOTICES.md src-tauri/resources/notices/THIRD_PARTY_NOTICES.md
+          for f in LICENSE-Apache-2.0.txt LICENSE-llama.cpp.txt LICENSE-LLVM-OpenMP.txt; do
+            test -s "src-tauri/resources/notices/$f"
+          done
+
+      - name: Scan source for banned cloud endpoints, telemetry, or leaked secrets
+        run: |
+          BANNED_REGEX='stealth''humanizer|gpt''zero|lite''llm|rudra''-free|academic''-inversion|translate''\.googleapis|sk-live''-[A-Za-z0-9]{10,}|sk-ant''-[A-Za-z0-9]{10,}|AIza''[0-9A-Za-z_-]{20,}|AKIA''[0-9A-Z]{16}|ghp_''[A-Za-z0-9]{20,}|gho_''[A-Za-z0-9]{20,}'
+          if grep -rnE "$BANNED_REGEX" \
+            src src-tauri/src src-tauri/tests scripts index.html package.json; then
+            echo "ERROR: Banned token or secret found!"
+            exit 1
+          fi

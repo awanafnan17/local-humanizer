@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0.0",
+  "timestamp_utc": "2026-11-21T01:32:58.729846+00:00",
+  "model_id": "qwen2.5-3b-instruct-q4_k_m",
+  "model_name": "Qwen2.5 3B Instruct",
+  "repo_id": "Qwen/Qwen2.5-3B-Instruct-GGUF",
+  "filename": "qwen2.5-3b-instruct-q4_k_m.gguf",
+  "license": "Qwen Research License Agreement",
+  "non_commercial_warning": true,
+  "artifact_bytes": 2104932768,
+  "artifact_sha256": "626b4a6678b86442240e33df819e00132d3ba7dddfe1cdc4fbb18e0a9615c62d",
+  "backend_mode": "cpu",
+  "runtime_flags": {
+    "ctx_size": 4096,
+    "parallel": 1,
+    "threads": 4,
+    "n_gpu_layers": 0,
+    "disable_thinking": false,
+    "fold_system_into_user": false
+  },
+  "process_metrics": {
+    "server_wall_sec": 124.447,
+    "model_load_ms": 0.0,
+    "swap_before_mb": 15135.56,
+    "swap_after_mb": 17277.81,
+    "swap_delta_mb": 2142.25,
+    "peak_rss_bytes": 1058799616,
+    "peak_rss_mib": 1009.75,
+    "peak_phys_footprint_bytes": 2154827352,
+    "peak_phys_footprint_mib": 2055.0,
+    "cpu_user_sec": 26.686,
+    "cpu_sys_sec": 3.949,
+    "cpu_utilization_pct": 24.62,
+    "major_page_faults": 247688,
+    "polled_pageins": 247688,
+    "nswap": 0,
+    "rusage_samples": 442
+  },
+  "aggregate": {
+    "tasks_completed": 0,
+    "tasks_total": 5,
+    "server_error": "llama-server /health did not become ready within 120.0s"
+  },
+  "tasks": []
+}

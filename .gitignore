@@ -25,6 +25,8 @@ benchmarks/tmp/
 
 # Installers / release staging
 release-artifacts/
+dist-release/
+SHA256SUMS.txt
 *.dmg
 *.exe
 *.msi

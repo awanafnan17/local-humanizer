@@ -1,0 +1,131 @@
+name: Release Installers
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.platform_label }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform_label: macos-arm64
+            os: macos-latest
+            rust_target: aarch64-apple-darwin
+            runtime_platform: macos-arm64
+            bundle_args: --bundles dmg --target aarch64-apple-darwin
+            bundle_dir: dmg
+            artifact_name: LocalHumanizer-macOS.dmg
+          - platform_label: macos-x64
+            os: macos-latest
+            rust_target: x86_64-apple-darwin
+            runtime_platform: macos-x64
+            bundle_args: --bundles dmg --target x86_64-apple-darwin
+            bundle_dir: dmg
+            artifact_name: LocalHumanizer-macOS-x64.dmg
+          - platform_label: windows-x64
+            os: windows-latest
+            rust_target: x86_64-pc-windows-msvc
+            runtime_platform: win-cpu-x64
+            bundle_args: --bundles nsis --target x86_64-pc-windows-msvc
+            bundle_dir: nsis
+            artifact_name: LocalHumanizer-Windows-Setup.exe
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust_target }}
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Fetch and prune llama.cpp b12600 runtime
+        run: node scripts/fetch-runtime.mjs --platform ${{ matrix.runtime_platform }} --sync-notices --prune
+
+      - name: Fetch and SHA-256 verify default model
+        run: node scripts/fetch-model.mjs --model qwen3-1.7b-q4_k_m
+
+      - name: Build Tauri installer
+        env:
+          CI: "true"
+        run: npx tauri build --ci ${{ matrix.bundle_args }}
+
+      - name: Stage artifact and compute SHA-256
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist-release
+          BUNDLE_PATH="src-tauri/target/${{ matrix.rust_target }}/release/bundle/${{ matrix.bundle_dir }}"
+          if [[ "${{ matrix.bundle_dir }}" == "dmg" ]]; then
+            BUILT_FILE="$(find "$BUNDLE_PATH" -maxdepth 1 -name '*.dmg' | head -n 1)"
+          else
+            BUILT_FILE="$(find "$BUNDLE_PATH" -maxdepth 1 -name '*-setup.exe' | head -n 1)"
+          fi
+          if [[ -z "${BUILT_FILE:-}" || ! -f "$BUILT_FILE" ]]; then
+            echo "ERROR: Built installer not found in $BUNDLE_PATH"
+            ls -la "$BUNDLE_PATH" || true
+            exit 1
+          fi
+          cp "$BUILT_FILE" "dist-release/${{ matrix.artifact_name }}"
+          ls -lh "dist-release/${{ matrix.artifact_name }}"
+          if command -v sha256sum >/dev/null 2>&1; then
+            sha256sum "dist-release/${{ matrix.artifact_name }}"
+          else
+            shasum -a 256 "dist-release/${{ matrix.artifact_name }}"
+          fi
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: dist-release/${{ matrix.artifact_name }}
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    name: Publish Checksummed GitHub Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download built installers
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Generate and verify SHA256SUMS.txt
+        run: |
+          cd release-assets
+          sha256sum LocalHumanizer-* > SHA256SUMS.txt
+          sha256sum -c SHA256SUMS.txt
+          ls -lh
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/*
+          generate_release_notes: true

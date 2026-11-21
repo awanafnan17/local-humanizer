@@ -61,19 +61,39 @@ function parseArgs(argv) {
   const opts = {
     platform: null,
     syncNotices: false,
+    prune: true,
+    pruneOnly: false,
   };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === "--platform") {
-      opts.platform = argv[i + 1] ?? null;
+      const next = argv[i + 1];
+      if (!next || next.startsWith("-")) {
+        throw new Error(
+          `Missing value for --platform. Expected one of: ${Object.keys(MANIFEST).join(", ")}, all`,
+        );
+      }
+      opts.platform = next;
       i += 1;
     } else if (arg.startsWith("--platform=")) {
-      opts.platform = arg.slice("--platform=".length);
+      const val = arg.slice("--platform=".length);
+      if (!val) {
+        throw new Error(
+          `Missing value for --platform=. Expected one of: ${Object.keys(MANIFEST).join(", ")}, all`,
+        );
+      }
+      opts.platform = val;
     } else if (arg === "--sync-notices") {
       opts.syncNotices = true;
+    } else if (arg === "--prune") {
+      opts.prune = true;
+    } else if (arg === "--no-prune") {
+      opts.prune = false;
+    } else if (arg === "--prune-only") {
+      opts.pruneOnly = true;
     } else if (arg === "--help" || arg === "-h") {
       console.log(
-        "Usage: node scripts/fetch-runtime.mjs [--platform macos-arm64|macos-x64|win-cpu-x64|all] [--sync-notices]",
+        "Usage: node scripts/fetch-runtime.mjs [--platform macos-arm64|macos-x64|win-cpu-x64|all] [--sync-notices] [--prune|--no-prune] [--prune-only]",
       );
       process.exit(0);
     } else {
@@ -81,6 +101,77 @@ function parseArgs(argv) {
     }
   }
   return opts;
+}
+
+const MACOS_COMMON_KEEP = [
+  "llama-server",
+  "LICENSE",
+  "libllama-server-impl.dylib",
+  "libllama-common.1.dylib",
+  "libmtmd.1.dylib",
+  "libllama.1.dylib",
+  "libggml.1.dylib",
+  "libggml-cpu.1.dylib",
+  "libggml-blas.1.dylib",
+  "libggml-rpc.1.dylib",
+  "libggml-base.1.dylib",
+];
+
+async function pruneRuntimeDir(platformId, destDir) {
+  const entries = await fsp.readdir(destDir, { withFileTypes: true });
+  if (platformId === "macos-arm64" || platformId === "macos-x64") {
+    const keepSet = new Set(MACOS_COMMON_KEEP);
+    if (platformId === "macos-arm64") {
+      keepSet.add("libggml-metal.1.dylib");
+    }
+
+    // Materialize required symlinks (e.g. lib*.1.dylib -> lib*.1.0.0.dylib) as regular files
+    // so tauri-bundler never dereferences 3x redundant copies into the .app bundle.
+    for (const name of keepSet) {
+      const targetPath = path.join(destDir, name);
+      if (!fs.existsSync(targetPath)) {
+        throw new Error(`Expected runtime file missing before pruning: ${targetPath}`);
+      }
+      const lst = await fsp.lstat(targetPath);
+      if (lst.isSymbolicLink()) {
+        const realPath = await fsp.realpath(targetPath);
+        const tmpCopy = `${targetPath}.materialize.tmp`;
+        await fsp.copyFile(realPath, tmpCopy);
+        await fsp.chmod(tmpCopy, 0o755);
+        await fsp.unlink(targetPath);
+        await fsp.rename(tmpCopy, targetPath);
+      }
+    }
+
+    let removedCount = 0;
+    for (const entry of entries) {
+      if (!keepSet.has(entry.name)) {
+        await fsp.rm(path.join(destDir, entry.name), { recursive: true, force: true });
+        removedCount += 1;
+      }
+    }
+    console.log(`Pruned ${removedCount} unused entries from ${destDir} (kept ${keepSet.size} runtime files)`);
+    return;
+  }
+
+  if (platformId === "win-cpu-x64") {
+    let removedCount = 0;
+    let keptCount = 0;
+    for (const entry of entries) {
+      const lower = entry.name.toLowerCase();
+      const keep =
+        lower === "llama-server.exe" ||
+        lower.endsWith(".dll") ||
+        lower.startsWith("license");
+      if (keep) {
+        keptCount += 1;
+      } else {
+        await fsp.rm(path.join(destDir, entry.name), { recursive: true, force: true });
+        removedCount += 1;
+      }
+    }
+    console.log(`Pruned ${removedCount} unused entries from ${destDir} (kept ${keptCount} runtime files)`);
+  }
 }
 
 async function downloadAndVerify(entry, tmpPath) {
@@ -145,7 +236,7 @@ function extractArchive(tmpPath, destDir, entry) {
   throw new Error(`Unsupported archive format: ${entry.format}`);
 }
 
-async function fetchPlatform(platformId) {
+async function fetchPlatform(platformId, prune) {
   const entry = MANIFEST[platformId];
   if (!entry) {
     throw new Error(`Unknown platform '${platformId}'. Expected one of: ${Object.keys(MANIFEST).join(", ")}, all`);
@@ -181,6 +272,10 @@ async function fetchPlatform(platformId) {
     if (fs.existsSync(openmpSrc)) {
       await fsp.mkdir(NOTICES_ROOT, { recursive: true });
       await fsp.copyFile(openmpSrc, path.join(NOTICES_ROOT, "LICENSE-LLVM-OpenMP.txt"));
+    }
+
+    if (prune) {
+      await pruneRuntimeDir(platformId, destDir);
     }
 
     console.log(`Extracted ${platformId} runtime into ${destDir}`);
@@ -225,8 +320,19 @@ async function main() {
   const target = opts.platform ?? detectHostPlatform();
   const platforms = target === "all" ? Object.keys(MANIFEST) : [target];
 
+  if (opts.pruneOnly) {
+    for (const platformId of platforms) {
+      const destDir = path.join(RUNTIME_ROOT, platformId);
+      if (!fs.existsSync(destDir)) {
+        throw new Error(`Runtime directory does not exist for pruning: ${destDir}`);
+      }
+      await pruneRuntimeDir(platformId, destDir);
+    }
+    return;
+  }
+
   for (const platformId of platforms) {
-    await fetchPlatform(platformId);
+    await fetchPlatform(platformId, opts.prune);
   }
 
   if (opts.syncNotices && !platforms.includes("win-cpu-x64")) {

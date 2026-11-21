@@ -1,0 +1,281 @@
+{
+  "schema_version": "1.0.0",
+  "description": "Original M2 benchmark tasks for Local Humanizer (distinct from tests/e2e/corpus/).",
+  "short_tasks": [
+    {
+      "id": "task_01_academic_apa",
+      "title": "Academic Research Synthesis (Estuarine Acoustic Telemetry, APA + DOI)",
+      "mode": "academic",
+      "intensity": "balanced",
+      "options": {
+        "preserve_length": true,
+        "preserve_formatting": true,
+        "preserve_citations": true,
+        "preserve_quotes": true,
+        "language": "en",
+        "voice": "third_person"
+      },
+      "text": "Estuarine salmonid migration models increasingly rely on passive acoustic telemetry arrays to quantify juvenile survival across tidally modulated channels. Prior multi-year deployments demonstrated that turbidity spikes and nocturnal ebb tides jointly govern passage velocity through narrow culvert corridors (Smith et al., 2023). Across a cohort of n = 1,420 tagged smolts monitored over two spring freshets, survival through restored side-channel habitats exceeded engineered rock revetments by 42.8% (p < 0.001), confirming earlier hydrodynamic hypotheses regarding shear-zone refuge availability (Patel & Gomez, 2024, pp. 14–19). Nevertheless, receiver detection efficiency degrades sharply whenever suspended sediment concentrations surpass 180 mg/L or when vessel propeller cavitation elevates ambient broadband noise near shipping berths (Kowalski, 2022). Recent bathymetric corrections coupled with Markov transition matrices mitigate this observability bias without inflating false-positive residency estimates, as documented in the supplementary dataset at https://doi.org/10.1038/s41586-024-07123-4 (DOI: 10.1038/s41586-024-07123-4). Consequently, watershed managers can calibrate seasonal gate operations using empirical transit distributions rather than static discharge thresholds, reducing entrainment losses while preserving navigable channel depth for commercial barges during peak outmigration windows.",
+      "expected_invariants": {
+        "citations": [
+          "(Smith et al., 2023)",
+          "(Patel & Gomez, 2024, pp. 14–19)",
+          "(Kowalski, 2022)"
+        ],
+        "DOIs": [
+          "10.1038/s41586-024-07123-4"
+        ],
+        "URLs": [
+          "https://doi.org/10.1038/s41586-024-07123-4"
+        ],
+        "numbers": [
+          "1,420",
+          "42.8%",
+          "180"
+        ],
+        "currencies": [],
+        "dates": [
+          "2023",
+          "2024",
+          "2022"
+        ],
+        "quoted_strings": [],
+        "code_blocks": [],
+        "named_entities": [
+          "Smith",
+          "Patel",
+          "Gomez",
+          "Kowalski"
+        ]
+      }
+    },
+    {
+      "id": "task_02_technical_doc",
+      "title": "Technical Engineering Note (Local Inference Runtime & IPC)",
+      "mode": "standard",
+      "intensity": "balanced",
+      "options": {
+        "preserve_length": true,
+        "preserve_formatting": true,
+        "preserve_citations": true,
+        "preserve_quotes": true,
+        "language": "en",
+        "voice": "third_person"
+      },
+      "text": "Starting with release v2.4.1 (published on November 12, 2025), the desktop orchestrator spawns `llama-server` strictly bound to `127.0.0.1:0` so that the operating system assigns an ephemeral loopback port invisible to external network interfaces. Prior to launching the worker binary, the supervisor validates the selected GGUF archive against an embedded `SHA-256` digest manifest and refuses startup whenever a single byte differs from the signed inventory. On systems lacking supported GPU drivers, the runtime controller automatically appends `--n-gpu-layers 0` alongside a 4,096-token context window to prevent driver initialization faults and out-of-memory stalls on entry-level laptops. Under sustained loopback polling, health-check round-trips average 18.5 ms while maintaining 99.95% request completion reliability across consecutive batch runs. Engineers migrating custom local wrappers prior to the 2026-04-15 deprecation cutoff should consult the updated IPC schema and bearer-token handshake examples at https://docs.localhumanizer.org/v2/runtime-ipc before removing legacy environment flags. Any child process that fails to acknowledge a graceful termination signal within five seconds is forcibly reaped so no orphaned sockets remain bound after application shutdown.",
+      "expected_invariants": {
+        "citations": [],
+        "DOIs": [],
+        "URLs": [
+          "https://docs.localhumanizer.org/v2/runtime-ipc"
+        ],
+        "numbers": [
+          "v2.4.1",
+          "4,096",
+          "18.5",
+          "99.95%"
+        ],
+        "currencies": [],
+        "dates": [
+          "November 12, 2025",
+          "2026-04-15"
+        ],
+        "quoted_strings": [],
+        "code_blocks": [
+          "`llama-server`",
+          "`127.0.0.1:0`",
+          "`SHA-256`",
+          "`--n-gpu-layers 0`"
+        ],
+        "named_entities": []
+      }
+    },
+    {
+      "id": "task_03_professional_memo",
+      "title": "Executive Governance Memo (Clinical Workstation Compliance)",
+      "mode": "professional",
+      "intensity": "balanced",
+      "options": {
+        "preserve_length": true,
+        "preserve_formatting": true,
+        "preserve_citations": true,
+        "preserve_quotes": true,
+        "language": "en",
+        "voice": "third_person"
+      },
+      "text": "Following our January 18, 2026 compliance audit in Basel, Switzerland, Dr. Elena Vance briefed the steering committee on the Phase II deployment across Northbridge Health Systems outpatient clinics. Total capital allocation remains capped at $1,245,000 for domestic hardware refreshes, supplemented by EUR 380,500 reserved for European localization and accessibility verification ahead of the Q3 2026 rollout milestone. During the review, Dr. Elena Vance emphasized the non-negotiable architectural boundary governing clinical text processing: \"Zero patient records may leave the on-premise workstation.\" That constraint eliminates hosted inference endpoints from procurement consideration and places full lifecycle accountability on the local desktop package. In addition, the security engineering lead codified binary integrity controls for all clinic administrators: \"All model digests must match the signed release manifest prior to startup.\" Regional directors should verify that workstation disk images allocate sufficient headroom for offline weights before scheduled maintenance windows begin, and escalate any hardware discrepancy to the infrastructure desk at least fourteen business days prior to site cutover.",
+      "expected_invariants": {
+        "citations": [],
+        "DOIs": [],
+        "URLs": [],
+        "numbers": [],
+        "currencies": [
+          "$1,245,000",
+          "EUR 380,500"
+        ],
+        "dates": [
+          "January 18, 2026",
+          "Q3 2026"
+        ],
+        "quoted_strings": [
+          "\"Zero patient records may leave the on-premise workstation.\"",
+          "\"All model digests must match the signed release manifest prior to startup.\""
+        ],
+        "code_blocks": [],
+        "named_entities": [
+          "Dr. Elena Vance",
+          "Northbridge Health Systems",
+          "Basel, Switzerland"
+        ]
+      }
+    },
+    {
+      "id": "task_04_natural_blog",
+      "title": "Conversational Blog Post (Restoring a 1978 Mechanical Typewriter)",
+      "mode": "natural",
+      "intensity": "balanced",
+      "options": {
+        "preserve_length": true,
+        "preserve_formatting": true,
+        "preserve_citations": true,
+        "preserve_quotes": true,
+        "language": "en",
+        "voice": "first_person"
+      },
+      "text": "I found the battered 1978 mechanical typewriter tucked behind a crate of cracked vinyl records at a weekend estate sale in Portland, Oregon. The seller asked for $145, which felt slightly steep for a machine coated in four decades of attic dust and dried correction fluid, yet the carriage still glided cleanly whenever I nudged the return lever. Back at my workbench in March 2025, I spent 3.2 hours carefully brushing oxidized lint out of the typebar basket with mineral spirits and a stiff brass bristle brush before touching a single adjustment screw.\n\nThe hardest part was not cleaning the steel linkages, though—it was resisting the urge to spray household oil onto parts engineered to run completely dry. Old oil turns into sticky varnish inside narrow escapement slots, causing common letters like E and T to hang halfway back from the platen. Once I flushed the segments clean and replaced the petrified rubber feed rollers with fresh silicone sleeves, the crisp metallic snap returned almost immediately.\n\nTyping my first full page on freshly inked cotton ribbon reminded me why tactile tools still earn space on a modern desk. There are no pop-up notifications, no browser tabs competing for attention, and no temptation to rewrite every opening sentence ten times before reaching the bottom of a paragraph. When a mechanical key strikes paper, you simply keep thinking forward and let minor typos wait for a red pen afterward.",
+      "expected_invariants": {
+        "citations": [],
+        "DOIs": [],
+        "URLs": [],
+        "numbers": [
+          "1978",
+          "3.2"
+        ],
+        "currencies": [
+          "$145"
+        ],
+        "dates": [
+          "1978",
+          "March 2025"
+        ],
+        "quoted_strings": [],
+        "code_blocks": [],
+        "named_entities": [
+          "Portland, Oregon"
+        ],
+        "expected_paragraphs": 3
+      }
+    },
+    {
+      "id": "task_05_simple_clear",
+      "title": "Plain-Language Public Notice (Municipal Permit Renewal)",
+      "mode": "simple",
+      "intensity": "strong",
+      "options": {
+        "preserve_length": true,
+        "preserve_formatting": true,
+        "preserve_citations": true,
+        "preserve_quotes": true,
+        "language": "en",
+        "voice": "third_person"
+      },
+      "text": "Pursuant to municipal administrative regulations codified under Section 14.2(b) of the Oakridge Commercial Occupancy Ordinance, all active small-business sidewalk seating permit holders are hereby notified that annual renewal applications and accompanying liability endorsements must be submitted to the Development Services Division no later than October 31, 2026. Applications remitted prior to the statutory cutoff require a standard processing remittance of $275.00, payable electronically through the municipal portal located at https://permit.oakridge.gov/renewals or via certified check at the Civic Center counter. Failure to complete renewal documentation on or before the designated deadline will result in automatic suspension of exterior seating privileges until a de novo inspection is scheduled and cleared. Applicants requiring procedural clarification or language assistance may contact the permit desk directly at (503) 555-0194 during regular weekday business hours.",
+      "expected_invariants": {
+        "citations": [],
+        "DOIs": [],
+        "URLs": [
+          "https://permit.oakridge.gov/renewals"
+        ],
+        "numbers": [
+          "14.2(b)",
+          "(503) 555-0194"
+        ],
+        "currencies": [
+          "$275.00"
+        ],
+        "dates": [
+          "October 31, 2026"
+        ],
+        "quoted_strings": [],
+        "code_blocks": [],
+        "named_entities": [
+          "Section 14.2(b)",
+          "Oakridge"
+        ]
+      }
+    }
+  ],
+  "long_doc_3000": {
+    "id": "long_doc_3000",
+    "title": "Grid-Scale Battery Storage, Black-Start Telemetry, and Municipal Microgrid Governance (3,100+ Words)",
+    "mode": "standard",
+    "intensity": "balanced",
+    "options": {
+      "preserve_length": true,
+      "preserve_formatting": true,
+      "preserve_citations": true,
+      "preserve_quotes": true,
+      "language": "en",
+      "voice": "third_person"
+    },
+    "text": "Regional electric utilities face an unprecedented operational transition as variable wind and solar generation displaces legacy synchronous thermal plants across coastal and inland transmission corridors. While inverter-based resources lower marginal wholesale energy prices during midday irradiance peaks, they also reduce physical rotational inertia, leaving distribution feeders more vulnerable to rapid frequency excursions when transmission lines trip unexpectedly. Grid-forming battery energy storage systems have emerged as a practical stabilizing asset because power electronics can synthesize virtual inertia and inject corrective real or reactive power within milliseconds of a voltage disturbance. Across twelve municipal feeders evaluated by Cascadia Grid Cooperative between March 14, 2024 and November 18, 2025, utilities deploying distributed lithium-iron-phosphate arrays observed a 94.6% reduction in momentary outage duration compared with feeders relying exclusively on diesel backup generators. Field logs compiled in the public engineering dossier at https://griddata.pacificenergy.org/reports/2025-bess document how coordinated inverter droop curves prevent cascading relay trips during severe winter windstorms.\n\nAcademic literature over the past four years has examined whether decentralized storage dispatch can simultaneously satisfy bulk transmission adequacy and local feeder voltage regulation without violating thermal transformer limits. In a multi-region simulation spanning 3,840 substation nodes, researchers established that hierarchical model predictive control reduces peak feeder congestion by 31.4% while lowering battery calendar degradation by nearly one-fifth relative to greedy price-arbitrage schedules (Chen et al., 2023). Complementary empirical measurements from islanded coastal microgrids further demonstrated that grid-forming inverters operating under `IEEE-1547-2018` ride-through profiles successfully stabilized frequency within 14.2 ms following sudden loss of the primary substation tie line (Lindqvist & Moreau, 2024, pp. 42–48). Earlier studies had cautioned that uncoordinated behind-the-meter batteries might exacerbate reverse power flow during spring shoulder months when residential demand reaches seasonal lows (Okafor, 2021). However, updated state-estimation frameworks published in Applied Energy (DOI: 10.1016/j.apenergy.2024.122819) show that lightweight substation telemetry resolves directional ambiguity without requiring expensive high-bandwidth fiber backhaul to every residential transformer.\n\nTo validate those theoretical findings under realistic fault conditions, Dr. Marcus Thorne led a joint hardware-in-the-loop testbed in Rotterdam, Netherlands during the autumn of 2024, later cross-checked against field installations in Osaka, Japan led by Dr. Priya Nair. The combined test campaign evaluated 480 MWh of utility-owned storage paired with 1,250 MW of regional wind capacity under simulated icing, ground-fault, and cyber-isolation scenarios (p < 0.001 across Monte Carlo fault injections). Dr. Marcus Thorne summarized the primary protection requirement in the final commissioning protocol: \"Islanded substations must maintain frequency within plus or minus 0.15 Hz during black-start recovery.\" Achieving that narrow band required rewriting legacy protective relay settings so that bidirectional fault currents did not falsely trigger instantaneous overcurrent lockouts when storage inverters supplied cold-load pickup current to darkened residential circuits.\n\nOperational experience from those deployments revealed that battery chemistry selection directly governs maintenance cadence and thermal enclosure engineering. Lithium-iron-phosphate cells tolerate deeper daily cycling and exhibit substantially higher thermal runaway thresholds than nickel-manganese-cobalt formulations, making them preferable for dense urban substations located beside schools or transit hubs. Even with safer cell chemistry, facility engineers must instrument every rack module with redundant gas-detection sensors, glycol cooling loops, and pressure-relief vents routed away from switchgear cabinets. During high-humidity summer afternoons in Osaka, Japan, Dr. Priya Nair noted that enclosure dehumidifiers consumed up to 2.8% of daily auxiliary station load unless variable-speed blowers were throttled during low-current standby intervals. Incorporating predictive ambient dew-point schedules cut parasitic HVAC energy consumption by 38.5% without raising rack cell temperatures above 29.5 degrees Celsius.\n\nFrom a software architecture perspective, modern battery management and substation dispatch controllers increasingly separate time-critical protection logic from supervisory optimization workflows. Local programmable logic controllers execute fast primary frequency response loops at sub-cycle intervals, communicating over isolated `modbus-tcp` channels inside air-gapped substation local area networks. Meanwhile, non-critical forecasting services ingest day-ahead weather ensembles and wholesale locational marginal prices through unidirectional security gateways, ensuring that external network interruptions never compromise safe islanding operation. Engineers configuring the dispatch daemon via `bess-dispatch --mode island` verify state-of-charge reserves before every scheduled storm watch, locking at least 35% usable energy strictly for black-start cranking and hospital feeder restoration. Detailed conformance checklists maintained at https://standards.ieee.org/ieee/1547/6931/ specify exact harmonic distortion ceilings and reconnection ramp rates so returning utility power synchronizes smoothly without mechanical torque shock to industrial motors.\n\nData privacy and substation cybersecurity have become equally decisive factors in municipal utility procurement following several high-profile ransomware incidents targeting regional water and power operators. Because smart inverter gateways sit adjacent to advanced metering infrastructure, naive cloud-first telemetry pipelines risk exposing household occupancy patterns through high-frequency load disaggregation. To prevent sensitive customer signatures from leaving local boundaries, Cascadia Grid Cooperative adopted an on-premise edge aggregation policy enforced directly within substation firmware. As Dr. Priya Nair stated during the November 18, 2025 interoperability summit: \"No telemetry frame containing residential meter identifiers may exit the substation gateway.\" Aggregate feeder power totals are cryptographically signed, stripped of individual meter serial numbers, and buffered locally for thirty days so system planners can audit performance offline even when wide-area cellular links fail during earthquakes.\n\nEconomic modeling across North American and European municipal utilities illustrates why capital budgets have shifted steadily toward modular storage rather than single-purpose peaking turbines. Between 2021 and 2025, installed turnkey battery system costs declined toward $184/kWh at the utility pack scale, enabling mid-sized cities to defer expensive substation transformer upgrades by five to eight years (Varga & Takahashi, 2025). In the Pacific Northwest, Cascadia Grid Cooperative approved a multi-phase capital program totaling $412,500,000 through Q4 2026 to install storage banks across fourteen high-risk wildfire corridors. Parallel European resilience grants administered out of Rotterdam, Netherlands committed EUR 89,200,000 toward port microgrids capable of powering shore-to-ship cranes and cold-storage warehouses independently for forty-eight consecutive hours. Although upfront civil engineering and fire-marshal permitting still add nine to fourteen months to project timelines, levelized avoided-outage savings outweigh annualized debt service once commercial interruption penalties are factored into municipal rate-case filings.\n\nHardware lifecycle testing documented in IEEE Transactions on Smart Grid (DOI: 10.1109/TSG.2023.3319402) highlights a subtle economic trade-off between aggressive frequency regulation and warranty preservation. Rapid charge-discharge micro-cycles aimed at capturing ancillary service payments can accelerate solid-electrolyte interphase growth if cell temperatures drift above manufacturer warranty envelopes during consecutive heatwaves. Consequently, asset managers increasingly cap daily throughput at 1.2 equivalent full cycles and dynamically widen state-of-charge deadbands whenever ambient temperatures exceed 34 degrees Celsius. Field telemetry confirms that conservative thermal derating preserves more than 86.4% of nameplate capacity after ten years of continuous utility service, protecting municipal bondholders from premature cell-module augmentation costs.\n\nHuman factors and operator training remain just as critical as inverter firmware when severe weather forces control-room crews into emergency islanding procedures. Under normal blue-sky conditions, automated energy management software handles routine peak shaving silently in the background, leaving dispatchers accustomed to predictable bulk transmission flows. When a regional transmission corridor trips during an ice storm, however, control-room personnel must interpret dozens of simultaneous alarm streams, confirm breaker statuses with field line crews, and verify that distributed storage blocks have adequate reserve headroom to pick up cold feeder loads sequentially. Tabletop drills conducted ahead of the 2025-09-30 regulatory compliance deadline demonstrated that simplifying human-machine interfaces—specifically grouping inverter readiness indicators, reserve duration estimates, and manual override controls on a single uncluttered console—reduced operator decision latency by nearly half during simulated blackout restorations.\n\nEquitable resilience planning also requires municipal regulators to examine which neighborhoods receive microgrid protection first when limited capital budgets force phased deployment. Historically, industrial parks and affluent commercial districts qualified earlier for backup infrastructure because conventional cost-benefit formulas weighted commercial revenue loss more heavily than residential health vulnerability. Recent state utility commissions have revised scoring rubrics to award explicit priority weights to census tracts housing medically fragile residents relying on home oxygen concentrators, refrigerated insulin, or powered mobility equipment. When Cascadia Grid Cooperative re-ranked its fourteen candidate feeders under the updated equity-weighted rubric, three rural coastal clinics and two high-density senior housing corridors moved into the immediate Q4 2026 construction queue ahead of suburban retail zones.\n\nEnvironmental lifecycle assessments provide additional clarity on supply-chain stewardship, mineral recovery, and end-of-life decommissioning for utility storage installations. While mining lithium, phosphate, and copper carries measurable upstream water and carbon footprints, full cradle-to-grave inventories indicate that replacing a single gas-peaking plant with grid-charged storage yields net greenhouse-gas reductions within twenty-eight months of operation on moderately decarbonized regional grids. Furthermore, municipal procurement contracts drafted in late 2025 increasingly mandate standardized modular battery trays, QR-coded chemistry passports, and pre-funded hydrometallurgical recycling bonds before final commissioning sign-off. By requiring manufacturers to guarantee at least 92% recovery of battery-grade lithium and copper at decommissioning, public utilities avoid transferring hazardous waste liabilities to future municipal taxpayers.\n\nInteroperability between legacy supervisory control systems and newer inverter vendors frequently exposes subtle protocol discrepancies that only surface during full-scale commissioning tests. Even when two vendors claim strict compliance with `IEEE-1547-2018` and `modbus-tcp` register maps, differences in byte-ordering conventions, deadband scaling factors, or heartbeat timeout defaults can trigger nuisance trip alarms under heavy network load. Commissioning teams therefore enforce a mandatory seventy-two-hour burn-in window during which synthetic step-changes in reactive power demand and simulated telemetry packet loss verify deterministic fallback behavior. Any vendor controller that resets its active power ceiling to zero instead of holding its last validated setpoint during a brief communications dropout fails acceptance testing immediately until firmware patches restore fail-safe hold semantics.\n\nLooking beyond single-substation reliability, regional grid planners are beginning to link adjacent municipal microgrids through controllable solid-state transfer switches so neighboring communities can share emergency reserves across feeder boundaries. If a coastal substation loses its primary transmission feed while an inland agricultural feeder retains surplus midday solar storage, automated tie-switch coordination can transfer up to 25 MW across distribution voltage lines without destabilizing either local island. Preliminary trials outlined in the https://griddata.pacificenergy.org/reports/2025-bess engineering appendix indicate that peer-to-peer microgrid energy sharing cuts required standalone battery oversizing by 19.3%, saving smaller rural cooperatives millions in upfront capital expenditure. Success still depends on harmonized protection coordination, clear inter-utility settlement tariffs, and pre-negotiated mutual-aid governance agreements ratified before emergencies strike.\n\nThermal and acoustic impacts on surrounding residential neighborhoods represent a practical permitting hurdle that early utility storage proposals occasionally underestimated. Although battery banks lack combustion exhaust stacks, high-capacity inverter transformers and variable-speed cooling fans emit continuous tonal hums that become noticeable during quiet overnight hours if enclosures sit within fifty meters of apartment windows. Acoustic baffling walls, low-tip-speed fan blades, and strategic setback landscaping added less than 1.4% to total project budgets in Rotterdam, Netherlands while eliminating noise-ordinance complaints during post-commissioning inspections. Early community workshops featuring transparent fire-suppression demonstrations and clear architectural renderings consistently shortened municipal zoning hearings compared with late-stage technical announcements.\n\nInsurance underwriting and fire-code compliance have matured rapidly alongside physical deployment experience, replacing ad-hoc municipal moratoria with quantitative risk engineering standards. Under updated NFPA 855 installation guidelines, outdoor containerized battery units spaced at least three meters apart with dedicated thermal runaway deflagration panels qualify for standard commercial property coverage without punitive surcharges. First-responder pre-incident plans stored in weatherproof lockboxes at substation gates now specify exact isolation switch locations, thermal-imaging inspection distances, and water-curtain cooling tactics so municipal fire crews never have to guess during an active alarm. Joint annual walk-throughs between utility engineers and local battalion chiefs build operational familiarity long before an equipment fault occurs.\n\nSoftware update governance for safety-critical grid controllers follows strict change-control discipline analogous to aviation or medical device maintenance. Rather than pushing unverified over-the-air firmware updates across live substations, engineering teams validate every cryptographic release inside digital-twin simulators, verify reproducible build signatures offline, and stage rollouts one feeder at a time during low-load overnight windows. Each controller retains a signed known-good fallback image in non-volatile flash memory so an interrupted update automatically reverts within thirty seconds without dropping substation telemetry or protection relays. Clear rollback runbooks and immutable local audit trails give regulatory inspectors verifiable confidence that performance enhancements never compromise grid stability.\n\nWorkforce development represents a quiet bottleneck as utilities scale storage capacity faster than traditional power-engineering curricula adapt. Maintaining grid-forming inverters demands hybrid fluency spanning three-phase power electronics, protective relaying, industrial networking, and thermal fluid management—skills rarely combined within a single legacy trade classification. Community colleges partnering with Cascadia Grid Cooperative launched targeted apprenticeship tracks in early 2025, pairing veteran substation electricians with power-systems software engineers for hands-on commissioning labs. Graduates trained on real protection relays and battery management racks enter field service already fluent in safe lockout-tagout procedures for high-voltage direct-current busbars, reducing commissioning defects and accelerating storm-recovery readiness.\n\nSeasonal hydrology and multi-day weather regimes in the Pacific Northwest also underscore the physical limits of four-hour lithium-ion storage durations during prolonged winter cold snaps. When persistent high-pressure ridges suppress coastal wind generation for five consecutive days while electric heating demand climbs sharply, short-duration batteries alone cannot bridge multi-day energy deficits without supplementary clean firm generation or demand-response flexibility. Planners therefore pair four-hour grid-forming storage—ideal for inertia, peak shaving, and black-start stabilization—with industrial thermal storage, smart water-heater load shifting, and long-duration pumped hydro reserves. Modeling confirms that combining fast inverter storage with flexible load management lowers winter reserve shortfalls far more economically than overbuilding battery racks solely for rare multi-day wind droughts.\n\nStandardized performance benchmarking across North American, European, and Asian deployments will determine how quickly smaller public utilities adopt proven microgrid architectures without repeating costly trial-and-error cycles. Openly published fault-response waveforms, degradation curves, and anonymized outage-restoration logs enable independent engineers to verify vendor claims against empirical field behavior rather than idealized laboratory datasheets. As documented across the comparative datasets cited by Chen et al. (2023), Lindqvist & Moreau (2024), and Varga & Takahashi (2025), transparent reporting accelerates regulatory approval, lowers financing risk premiums, and empowers local communities to evaluate resilience investments objectively. When technical rigor, strict privacy boundaries, and transparent public governance converge, decentralized battery storage transforms from an experimental pilot technology into dependable everyday civic infrastructure.\n\nIn conclusion, the convergence of grid-forming power electronics, disciplined local cybersecurity, declining cell costs, and clear operational governance has established utility-scale battery storage as a cornerstone of modern electric grid resilience. Deployments overseen by Cascadia Grid Cooperative and international partners in Rotterdam, Netherlands and Osaka, Japan confirm that strict local data containment, deterministic fail-safe protection, and human-centered control interfaces can operate reliably without surrendering customer privacy to external clouds. By maintaining rigorous engineering benchmarks, respecting environmental lifecycle commitments, and investing in skilled local operators ahead of Q4 2026 expansion milestones, public utilities can deliver cleaner, quieter, and demonstrably more resilient electricity to the communities they serve.\n\nCross-border regulatory harmonization also plays an underappreciated role when regional utilities procure standardized inverter hardware and diagnostic software across multiple jurisdictions. In practice, utility procurement teams often discover that grid-code certification tests accepted in one coastal state require expensive repeat witness testing across an adjacent transmission interconnect simply because voltage ride-through reporting templates differ in timestamp precision or harmonic binning intervals. Adopting shared open test harnesses anchored to `IEEE-1547-2018` conformance tables trims up to four months off engineering sign-off schedules and prevents smaller municipal utilities from paying duplicative consulting fees.\n\nVoltage flicker mitigation along rural single-phase branch lines illustrates another immediate operational dividend of distributed utility storage that seldom appears in headline capacity-market valuations. Agricultural irrigation pumps, sawmills, and cold-storage compressors frequently sit at the far ends of radial distribution feeders where voltage sags exceed five percent whenever heavy inductive motors start simultaneously. Positioning compact 2 MWh battery skids near feeder midpoints supplies instantaneous reactive VAR support within half an electrical cycle, protecting sensitive variable-frequency drives from under-voltage lockouts without forcing the utility to reconductor miles of overhead timber pole lines.\n\nData archival standards inside local substation gateways merit careful engineering scrutiny because high-rate phasor measurement units can easily saturate modest industrial solid-state drives during prolonged storm emergencies. Rather than recording raw 120-hertz waveforms indefinitely, modern edge controllers retain continuous ring buffers for seventy-two hours while automatically freezing high-resolution pre-fault and post-fault snapshots whenever frequency deviates by more than 0.08 Hz or bus voltage drops below 0.92 per unit. This selective retention scheme preserves forensic root-cause fidelity for protection engineers while keeping annual storage wear comfortably within industrial endurance ratings.\n\nCold-climate thermal modeling in interior mountain valleys demonstrates that auxiliary heating energy during sub-zero winter nights can quietly erode net round-trip efficiency if battery containers rely on uninsulated steel walls. Field measurements from pilot enclosures equipped with vacuum-insulated composite panels and closed-loop waste-heat recovery from bidirectional power conversion transformers showed a 44% drop in winter parasitic heating demand compared with standard shipping-container retrofits. Keeping cell cores uniformly between 18 and 24 degrees Celsius prevents lithium plating during morning solar charging ramps and preserves full emergency discharge power when evening heating peaks arrive.\n\nPublic transparency dashboards built atop strictly anonymized feeder metrics further strengthen civic trust during contentious utility rate-setting hearings and siting reviews. When residents can inspect aggregate monthly outage-minute reductions, verifiable fuel displacement totals, and independent third-party fire-safety inspection dates without exposing any household-level consumption traces, municipal bond measures consistently earn broader voter support. Clear plain-language annual disclosures bridge the persistent communication gap between specialized protection engineers and the ratepayers funding long-lived grid modernization assets.\n\nSupply-chain resilience for power semiconductors and lithium-iron-phosphate precursor chemicals has similarly prompted cooperative procurement alliances to diversify vendor qualification lists well ahead of Q4 2026 construction schedules. Relying on a single inverter original equipment manufacturer exposes multi-year substation expansion programs to six-month lead-time shocks whenever regional shipping bottlenecks or tariff adjustments disrupt factory deliveries. By pre-qualifying two independent inverter suppliers against identical `modbus-tcp` register profiles and `IEEE-1547-2018` harmonic limits, regional cooperatives retain competitive pricing leverage while ensuring spare power-stage modules remain interchangeable across field depots.\n\nPost-event forensic audits following severe coastal storms provide essential empirical feedback for refining future storage sizing formulas and protection coordination thresholds. Whenever an islanded substation successfully rides through multi-hour transmission outages, protection engineers compare predicted battery reserve curves against actual cold-load pickup demand across residential heat pumps and commercial refrigeration units. Recording those discrepancies locally inside signed engineering workbooks turns every storm recovery into durable institutional knowledge without exposing granular household load profiles outside utility-owned hardware.\n\nUltimately, durable grid decarbonization depends less on isolated laboratory breakthroughs than on disciplined execution across thousands of everyday engineering, procurement, and maintenance decisions. Whether coordinating black-start restoration protocols in Rotterdam, Netherlands, refining humidity controls in Osaka, Japan, or safeguarding rural coastal clinics under Cascadia Grid Cooperative's Q4 2026 investment schedule, the decisive factor remains operational reliability verified against transparent local measurements. Utilities that pair modular grid-forming storage with strict edge privacy, realistic lifecycle budgeting, and well-trained local technicians will enter the next decade of electrification with calmer control rooms, lower outage costs, and stronger public confidence.",
+    "expected_invariants": {
+      "citations": [
+        "(Chen et al., 2023)",
+        "(Lindqvist & Moreau, 2024, pp. 42–48)",
+        "(Okafor, 2021)",
+        "(Varga & Takahashi, 2025)"
+      ],
+      "DOIs": [
+        "10.1016/j.apenergy.2024.122819",
+        "10.1109/TSG.2023.3319402"
+      ],
+      "URLs": [
+        "https://griddata.pacificenergy.org/reports/2025-bess",
+        "https://standards.ieee.org/ieee/1547/6931/"
+      ],
+      "numbers": [
+        "94.6%",
+        "3,840",
+        "31.4%",
+        "14.2",
+        "480",
+        "1,250",
+        "0.15",
+        "38.5%",
+        "29.5",
+        "35%",
+        "86.4%",
+        "92%",
+        "19.3%"
+      ],
+      "currencies": [
+        "$184",
+        "$412,500,000",
+        "EUR 89,200,000"
+      ],
+      "dates": [
+        "March 14, 2024",
+        "November 18, 2025",
+        "2025-09-30",
+        "Q4 2026"
+      ],
+      "quoted_strings": [
+        "\"Islanded substations must maintain frequency within plus or minus 0.15 Hz during black-start recovery.\"",
+        "\"No telemetry frame containing residential meter identifiers may exit the substation gateway.\""
+      ],
+      "code_blocks": [
+        "`IEEE-1547-2018`",
+        "`modbus-tcp`",
+        "`bess-dispatch --mode island`"
+      ],
+      "named_entities": [
+        "Cascadia Grid Cooperative",
+        "Dr. Marcus Thorne",
+        "Dr. Priya Nair",
+        "Rotterdam, Netherlands",
+        "Osaka, Japan"
+      ]
+    }
+  }
+}

@@ -1,0 +1,457 @@
+{
+  "schema_version": "1.0.0",
+  "timestamp_utc": "2026-11-21T01:00:02.149929+00:00",
+  "model_id": "gemma-3-1b-it-q4_k_m",
+  "model_name": "Gemma 3 1B IT",
+  "repo_id": "ggml-org/gemma-3-1b-it-GGUF",
+  "filename": "gemma-3-1b-it-Q4_K_M.gguf",
+  "license": "Gemma Terms of Use",
+  "non_commercial_warning": false,
+  "artifact_bytes": 806058240,
+  "artifact_sha256": "8ccc5cd1f1b3602548715ae25a66ed73fd5dc68a210412eea643eb20eb75a135",
+  "backend_mode": "metal",
+  "runtime_flags": {
+    "ctx_size": 4096,
+    "parallel": 1,
+    "threads": 4,
+    "n_gpu_layers": 99,
+    "disable_thinking": false,
+    "fold_system_into_user": true
+  },
+  "process_metrics": {
+    "server_wall_sec": 122.772,
+    "model_load_ms": 5937.9,
+    "swap_before_mb": 15944.5,
+    "swap_after_mb": 16872.06,
+    "swap_delta_mb": 927.56,
+    "peak_rss_bytes": 693583872,
+    "peak_rss_mib": 661.45,
+    "peak_phys_footprint_bytes": 244909568,
+    "peak_phys_footprint_mib": 233.56,
+    "cpu_user_sec": 0.0,
+    "cpu_sys_sec": 0.0,
+    "cpu_utilization_pct": 0.0,
+    "major_page_faults": 0,
+    "polled_pageins": 52681,
+    "nswap": 0,
+    "rusage_samples": 477
+  },
+  "aggregate": {
+    "tasks_completed": 5,
+    "tasks_total": 5,
+    "server_error": null,
+    "mean_wall_clock_ms": 23185.4,
+    "total_wall_clock_ms": 115926.8,
+    "mean_prompt_tok_per_sec": 448.38,
+    "mean_gen_tok_per_sec": 17.01,
+    "mean_invariant_retention": 0.8667,
+    "mean_word_ratio": 1.0169,
+    "mean_lexical_distance": 0.1687,
+    "think_leakage_count": 0,
+    "truncation_count": 0,
+    "repetition_count": 0,
+    "verbatim_echo_count": 3
+  },
+  "tasks": [
+    {
+      "task_id": "task_01_academic_apa",
+      "mode": "academic",
+      "intensity": "balanced",
+      "wall_clock_ms": 41201.6,
+      "timings": {
+        "prompt_n": 520,
+        "prompt_ms": 15796.816,
+        "prompt_per_second": 32.92,
+        "predicted_n": 303,
+        "predicted_ms": 24493.419,
+        "predicted_per_second": 12.33
+      },
+      "usage": {
+        "completion_tokens": 303,
+        "prompt_tokens": 520,
+        "total_tokens": 823,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "raw_output": "Estuarine salmonid migration models increasingly employ passive acoustic telemetry arrays to assess juvenile survival within tidally modulated channels. Prior deployments indicated that turbidity spikes and nocturnal ebb tides jointly influence passage velocity through narrow culvert corridors (Smith et al., 2023). Across a cohort of n = 1,420 tagged smolts monitored over two spring freshets, survival through restored side-channel habitats exceeded engineered rock revetments by 42.8% (p < 0.001), validating earlier hydrodynamic hypotheses regarding shear-zone refuge availability (Patel & Gomez, 2024, pp. 14\u201319). Nevertheless, receiver detection efficiency diminishes significantly when suspended sediment concentrations surpass 180 mg/L or when vessel propeller cavitation elevates broadband noise near shipping berths (Kowalski, 2022). Recent bathymetric corrections integrated with Markov transition matrices effectively address this observability bias, as demonstrated in the supplementary dataset located at https://doi.org/10.1038/s41586-024-07123-4 (DOI: 10.1038/s41586-024-07123-4). Consequently, watershed managers can calibrate seasonal gate operations utilizing empirical transit distributions rather than static discharge thresholds, thereby reducing entrainment losses while preserving navigable channel depth for commercial barges during peak outmigration periods.",
+      "reasoning_content": null,
+      "metrics": {
+        "cleaned_output": "Estuarine salmonid migration models increasingly employ passive acoustic telemetry arrays to assess juvenile survival within tidally modulated channels. Prior deployments indicated that turbidity spikes and nocturnal ebb tides jointly influence passage velocity through narrow culvert corridors (Smith et al., 2023). Across a cohort of n = 1,420 tagged smolts monitored over two spring freshets, survival through restored side-channel habitats exceeded engineered rock revetments by 42.8% (p < 0.001), validating earlier hydrodynamic hypotheses regarding shear-zone refuge availability (Patel & Gomez, 2024, pp. 14\u201319). Nevertheless, receiver detection efficiency diminishes significantly when suspended sediment concentrations surpass 180 mg/L or when vessel propeller cavitation elevates broadband noise near shipping berths (Kowalski, 2022). Recent bathymetric corrections integrated with Markov transition matrices effectively address this observability bias, as demonstrated in the supplementary dataset located at https://doi.org/10.1038/s41586-024-07123-4 (DOI: 10.1038/s41586-024-07123-4). Consequently, watershed managers can calibrate seasonal gate operations utilizing empirical transit distributions rather than static discharge thresholds, thereby reducing entrainment losses while preserving navigable channel depth for commercial barges during peak outmigration periods.",
+        "think_leakage": false,
+        "think_in_content": false,
+        "think_in_reasoning": false,
+        "source_words": 170,
+        "output_words": 165,
+        "word_count_ratio": 0.9706,
+        "truncation_flag": false,
+        "expansion_flag": false,
+        "source_paragraphs": 1,
+        "output_paragraphs": 1,
+        "paragraph_preserved": true,
+        "invariant_retention_overall": 1.0,
+        "invariant_matched": 15,
+        "invariant_expected": 15,
+        "invariant_categories": {
+          "citations": {
+            "expected": 3,
+            "matched": 3,
+            "missing": [],
+            "rate": 1.0
+          },
+          "DOIs": {
+            "expected": 1,
+            "matched": 1,
+            "missing": [],
+            "rate": 1.0
+          },
+          "URLs": {
+            "expected": 1,
+            "matched": 1,
+            "missing": [],
+            "rate": 1.0
+          },
+          "numbers": {
+            "expected": 3,
+            "matched": 3,
+            "missing": [],
+            "rate": 1.0
+          },
+          "dates": {
+            "expected": 3,
+            "matched": 3,
+            "missing": [],
+            "rate": 1.0
+          },
+          "named_entities": {
+            "expected": 4,
+            "matched": 4,
+            "missing": [],
+            "rate": 1.0
+          }
+        },
+        "missing_invariants": [],
+        "max_4gram_count": 2,
+        "ngram_4_repeat_rate": 0.0168,
+        "repetition_flag": false,
+        "lexical_distance": 0.2689,
+        "verbatim_echo_flag": false
+      },
+      "error": null
+    },
+    {
+      "task_id": "task_02_technical_doc",
+      "mode": "standard",
+      "intensity": "balanced",
+      "wall_clock_ms": 31193.6,
+      "timings": {
+        "prompt_n": 494,
+        "prompt_ms": 4745.824,
+        "prompt_per_second": 104.09,
+        "predicted_n": 283,
+        "predicted_ms": 23880.073,
+        "predicted_per_second": 11.81
+      },
+      "usage": {
+        "completion_tokens": 283,
+        "prompt_tokens": 497,
+        "total_tokens": 780,
+        "prompt_tokens_details": {
+          "cached_tokens": 3
+        }
+      },
+      "raw_output": "Starting with release v2.4.1, published on November 12, 2025, the desktop orchestrator spawns `llama-server` strictly bound to `127.0.0.1:0` so that the operating system assigns an ephemeral loopback port invisible to external network interfaces. Prior to launching the worker binary, the supervisor validates the selected GGUF archive against an embedded `SHA-256` digest manifest and refuses startup whenever a single byte differs from the signed inventory. On systems lacking supported GPU drivers, the runtime controller automatically appends `--n-gpu-layers 0` alongside a 4,096-token context window to prevent driver initialization faults and out-of-memory stalls on entry-level laptops. Under sustained loopback polling, health-check round-trips average 18.5 ms while maintaining 99.95% request completion reliability across consecutive batch runs. Engineers migrating custom local wrappers prior to the 2026-04-15 deprecation cutoff should consult the updated IPC schema and bearer-token handshake examples at https://docs.localhumanizer.org/v2/runtime-ipc before removing legacy environment flags. Any child process that fails to acknowledge a graceful termination signal within five seconds is forcibly reaped so no orphaned sockets remain bound after application shutdown.",
+      "reasoning_content": null,
+      "metrics": {
+        "cleaned_output": "Starting with release v2.4.1, published on November 12, 2025, the desktop orchestrator spawns `llama-server` strictly bound to `127.0.0.1:0` so that the operating system assigns an ephemeral loopback port invisible to external network interfaces. Prior to launching the worker binary, the supervisor validates the selected GGUF archive against an embedded `SHA-256` digest manifest and refuses startup whenever a single byte differs from the signed inventory. On systems lacking supported GPU drivers, the runtime controller automatically appends `--n-gpu-layers 0` alongside a 4,096-token context window to prevent driver initialization faults and out-of-memory stalls on entry-level laptops. Under sustained loopback polling, health-check round-trips average 18.5 ms while maintaining 99.95% request completion reliability across consecutive batch runs. Engineers migrating custom local wrappers prior to the 2026-04-15 deprecation cutoff should consult the updated IPC schema and bearer-token handshake examples at https://docs.localhumanizer.org/v2/runtime-ipc before removing legacy environment flags. Any child process that fails to acknowledge a graceful termination signal within five seconds is forcibly reaped so no orphaned sockets remain bound after application shutdown.",
+        "think_leakage": false,
+        "think_in_content": false,
+        "think_in_reasoning": false,
+        "source_words": 166,
+        "output_words": 166,
+        "word_count_ratio": 1.0,
+        "truncation_flag": false,
+        "expansion_flag": false,
+        "source_paragraphs": 1,
+        "output_paragraphs": 1,
+        "paragraph_preserved": true,
+        "invariant_retention_overall": 1.0,
+        "invariant_matched": 11,
+        "invariant_expected": 11,
+        "invariant_categories": {
+          "URLs": {
+            "expected": 1,
+            "matched": 1,
+            "missing": [],
+            "rate": 1.0
+          },
+          "numbers": {
+            "expected": 4,
+            "matched": 4,
+            "missing": [],
+            "rate": 1.0
+          },
+          "dates": {
+            "expected": 2,
+            "matched": 2,
+            "missing": [],
+            "rate": 1.0
+          },
+          "code_blocks": {
+            "expected": 4,
+            "matched": 4,
+            "missing": [],
+            "rate": 1.0
+          }
+        },
+        "missing_invariants": [],
+        "max_4gram_count": 1,
+        "ngram_4_repeat_rate": 0.0,
+        "repetition_flag": false,
+        "lexical_distance": 0.0,
+        "verbatim_echo_flag": true
+      },
+      "error": null
+    },
+    {
+      "task_id": "task_03_professional_memo",
+      "mode": "professional",
+      "intensity": "balanced",
+      "wall_clock_ms": 16649.2,
+      "timings": {
+        "prompt_n": 422,
+        "prompt_ms": 657.761,
+        "prompt_per_second": 641.57,
+        "predicted_n": 219,
+        "predicted_ms": 14067.617,
+        "predicted_per_second": 15.5
+      },
+      "usage": {
+        "completion_tokens": 219,
+        "prompt_tokens": 424,
+        "total_tokens": 643,
+        "prompt_tokens_details": {
+          "cached_tokens": 2
+        }
+      },
+      "raw_output": "Following compliance audit in Basel, Switzerland, on January 18, 2026, Dr. Elena Vance briefed the steering committee on the Phase II deployment across Northbridge Health Systems outpatient clinics. Total capital allocation remained capped at $1,245,000 for domestic hardware refreshes, supplemented by EUR 380,500 reserved for European localization and accessibility verification ahead of the Q3 2026 rollout milestone. During the review, Dr. Elena Vance emphasized the non-negotiable architectural boundary governing clinical text processing: \u201cZero patient records may leave the on-premise workstation.\u201d That constraint eliminates hosted inference endpoints from procurement consideration and places full lifecycle accountability on the local desktop package. In addition, the security engineering lead codified binary integrity controls for all clinic administrators: \u201cAll model digests must match the signed release manifest prior to startup.\u201d Regional directors should verify that workstation disk images allocate sufficient headroom for offline weights before scheduled maintenance windows begin, and escalate any hardware discrepancy to the infrastructure desk at least fourteen business days prior to site cutover.",
+      "reasoning_content": null,
+      "metrics": {
+        "cleaned_output": "Following compliance audit in Basel, Switzerland, on January 18, 2026, Dr. Elena Vance briefed the steering committee on the Phase II deployment across Northbridge Health Systems outpatient clinics. Total capital allocation remained capped at $1,245,000 for domestic hardware refreshes, supplemented by EUR 380,500 reserved for European localization and accessibility verification ahead of the Q3 2026 rollout milestone. During the review, Dr. Elena Vance emphasized the non-negotiable architectural boundary governing clinical text processing: \u201cZero patient records may leave the on-premise workstation.\u201d That constraint eliminates hosted inference endpoints from procurement consideration and places full lifecycle accountability on the local desktop package. In addition, the security engineering lead codified binary integrity controls for all clinic administrators: \u201cAll model digests must match the signed release manifest prior to startup.\u201d Regional directors should verify that workstation disk images allocate sufficient headroom for offline weights before scheduled maintenance windows begin, and escalate any hardware discrepancy to the infrastructure desk at least fourteen business days prior to site cutover.",
+        "think_leakage": false,
+        "think_in_content": false,
+        "think_in_reasoning": false,
+        "source_words": 162,
+        "output_words": 162,
+        "word_count_ratio": 1.0,
+        "truncation_flag": false,
+        "expansion_flag": false,
+        "source_paragraphs": 1,
+        "output_paragraphs": 1,
+        "paragraph_preserved": true,
+        "invariant_retention_overall": 1.0,
+        "invariant_matched": 9,
+        "invariant_expected": 9,
+        "invariant_categories": {
+          "currencies": {
+            "expected": 2,
+            "matched": 2,
+            "missing": [],
+            "rate": 1.0
+          },
+          "dates": {
+            "expected": 2,
+            "matched": 2,
+            "missing": [],
+            "rate": 1.0
+          },
+          "quoted_strings": {
+            "expected": 2,
+            "matched": 2,
+            "missing": [],
+            "rate": 1.0
+          },
+          "named_entities": {
+            "expected": 3,
+            "matched": 3,
+            "missing": [],
+            "rate": 1.0
+          }
+        },
+        "missing_invariants": [],
+        "max_4gram_count": 1,
+        "ngram_4_repeat_rate": 0.0,
+        "repetition_flag": false,
+        "lexical_distance": 0.0489,
+        "verbatim_echo_flag": true
+      },
+      "error": null
+    },
+    {
+      "task_id": "task_04_natural_blog",
+      "mode": "natural",
+      "intensity": "balanced",
+      "wall_clock_ms": 18157.2,
+      "timings": {
+        "prompt_n": 497,
+        "prompt_ms": 669.155,
+        "prompt_per_second": 742.73,
+        "predicted_n": 317,
+        "predicted_ms": 16186.413,
+        "predicted_per_second": 19.52
+      },
+      "usage": {
+        "completion_tokens": 317,
+        "prompt_tokens": 498,
+        "total_tokens": 815,
+        "prompt_tokens_details": {
+          "cached_tokens": 1
+        }
+      },
+      "raw_output": "Okay, here\u2019s the rewritten text, adhering to all your instructions:\n\nI stumbled upon a vintage mechanical typewriter in a Portland estate sale \u2013 tucked away behind a pile of cracked vinyl records, it was a forgotten relic. The seller requested $145, and honestly, it felt a bit high for a machine that had seen so many decades of dust and dried correction fluid, yet the carriage moved with surprising smoothness when I gently nudged the return lever. Back in March 2025, after three long hours, I meticulously cleaned the typebar basket, brushing away oxidized lint with mineral spirits and a stiff brass bristle brush \u2013 a task that felt oddly satisfying.\n\nThe biggest challenge wasn\u2019t the cleaning of the steel linkages, though\u2014it was resisting the urge to lightly spray household oil onto parts designed to remain completely dry. Old oil would transform into sticky varnish inside narrow escapement slots, causing common letters like E and T to hang halfway back from the platen. After carefully flushing the segments clean and replacing the petrified rubber feed rollers with fresh silicone sleeves, the crisp metallic snap returned almost instantly.\n\nWhen I started typing my first full page on freshly inked cotton ribbon, it struck me \u2013 there\u2019s something undeniably special about the feel of a physical keyboard. There are no pop-up notifications, no browser tabs vying for attention, and no temptation to rewrite every opening sentence ten times before reaching the bottom of a paragraph. When a mechanical key strikes paper, you simply keep thinking forward and let minor typos wait for a red pen afterward.",
+      "reasoning_content": null,
+      "metrics": {
+        "cleaned_output": "Okay, here\u2019s the rewritten text, adhering to all your instructions:\n\nI stumbled upon a vintage mechanical typewriter in a Portland estate sale \u2013 tucked away behind a pile of cracked vinyl records, it was a forgotten relic. The seller requested $145, and honestly, it felt a bit high for a machine that had seen so many decades of dust and dried correction fluid, yet the carriage moved with surprising smoothness when I gently nudged the return lever. Back in March 2025, after three long hours, I meticulously cleaned the typebar basket, brushing away oxidized lint with mineral spirits and a stiff brass bristle brush \u2013 a task that felt oddly satisfying.\n\nThe biggest challenge wasn\u2019t the cleaning of the steel linkages, though\u2014it was resisting the urge to lightly spray household oil onto parts designed to remain completely dry. Old oil would transform into sticky varnish inside narrow escapement slots, causing common letters like E and T to hang halfway back from the platen. After carefully flushing the segments clean and replacing the petrified rubber feed rollers with fresh silicone sleeves, the crisp metallic snap returned almost instantly.\n\nWhen I started typing my first full page on freshly inked cotton ribbon, it struck me \u2013 there\u2019s something undeniably special about the feel of a physical keyboard. There are no pop-up notifications, no browser tabs vying for attention, and no temptation to rewrite every opening sentence ten times before reaching the bottom of a paragraph. When a mechanical key strikes paper, you simply keep thinking forward and let minor typos wait for a red pen afterward.",
+        "think_leakage": false,
+        "think_in_content": false,
+        "think_in_reasoning": false,
+        "source_words": 237,
+        "output_words": 264,
+        "word_count_ratio": 1.1139,
+        "truncation_flag": false,
+        "expansion_flag": false,
+        "source_paragraphs": 3,
+        "output_paragraphs": 4,
+        "paragraph_preserved": true,
+        "invariant_retention_overall": 0.3333,
+        "invariant_matched": 2,
+        "invariant_expected": 6,
+        "invariant_categories": {
+          "numbers": {
+            "expected": 2,
+            "matched": 0,
+            "missing": [
+              "1978",
+              "3.2"
+            ],
+            "rate": 0.0
+          },
+          "currencies": {
+            "expected": 1,
+            "matched": 1,
+            "missing": [],
+            "rate": 1.0
+          },
+          "dates": {
+            "expected": 2,
+            "matched": 1,
+            "missing": [
+              "1978"
+            ],
+            "rate": 0.5
+          },
+          "named_entities": {
+            "expected": 1,
+            "matched": 0,
+            "missing": [
+              "Portland, Oregon"
+            ],
+            "rate": 0.0
+          }
+        },
+        "missing_invariants": [
+          "numbers:1978",
+          "numbers:3.2",
+          "dates:1978",
+          "named_entities:Portland, Oregon"
+        ],
+        "max_4gram_count": 1,
+        "ngram_4_repeat_rate": 0.0,
+        "repetition_flag": false,
+        "lexical_distance": 0.5257,
+        "verbatim_echo_flag": false
+      },
+      "error": null
+    },
+    {
+      "task_id": "task_05_simple_clear",
+      "mode": "simple",
+      "intensity": "strong",
+      "wall_clock_ms": 8725.2,
+      "timings": {
+        "prompt_n": 404,
+        "prompt_ms": 560.66,
+        "prompt_per_second": 720.58,
+        "predicted_n": 184,
+        "predicted_ms": 7071.403,
+        "predicted_per_second": 25.88
+      },
+      "usage": {
+        "completion_tokens": 184,
+        "prompt_tokens": 405,
+        "total_tokens": 589,
+        "prompt_tokens_details": {
+          "cached_tokens": 1
+        }
+      },
+      "raw_output": "Pursuant to municipal administrative regulations codified under Section 14.2(b) of the Oakridge Commercial Occupancy Ordinance, all active small-business sidewalk seating permit holders are hereby notified that annual renewal applications and accompanying liability endorsements must be submitted to the Development Services Division no later than October 31, 2026. Applications remitted prior to the statutory cutoff require a standard processing remittance of $275.00, payable electronically through the municipal portal located at https://permit.oakridge.gov/renewals or via certified check at the Civic Center counter. Failure to complete renewal documentation on or before the designated deadline will result in automatic suspension of exterior seating privileges until a de novo inspection is scheduled and cleared. Applicants requiring procedural clarification or language assistance may contact the permit desk directly at (503) 555-0194 during regular weekday business hours.",
+      "reasoning_content": null,
+      "metrics": {
+        "cleaned_output": "Pursuant to municipal administrative regulations codified under Section 14.2(b) of the Oakridge Commercial Occupancy Ordinance, all active small-business sidewalk seating permit holders are hereby notified that annual renewal applications and accompanying liability endorsements must be submitted to the Development Services Division no later than October 31, 2026. Applications remitted prior to the statutory cutoff require a standard processing remittance of $275.00, payable electronically through the municipal portal located at https://permit.oakridge.gov/renewals or via certified check at the Civic Center counter. Failure to complete renewal documentation on or before the designated deadline will result in automatic suspension of exterior seating privileges until a de novo inspection is scheduled and cleared. Applicants requiring procedural clarification or language assistance may contact the permit desk directly at (503) 555-0194 during regular weekday business hours.",
+        "think_leakage": false,
+        "think_in_content": false,
+        "think_in_reasoning": false,
+        "source_words": 129,
+        "output_words": 129,
+        "word_count_ratio": 1.0,
+        "truncation_flag": false,
+        "expansion_flag": false,
+        "source_paragraphs": 1,
+        "output_paragraphs": 1,
+        "paragraph_preserved": true,
+        "invariant_retention_overall": 1.0,
+        "invariant_matched": 7,
+        "invariant_expected": 7,
+        "invariant_categories": {
+          "URLs": {
+            "expected": 1,
+            "matched": 1,
+            "missing": [],
+            "rate": 1.0
+          },
+          "numbers": {
+            "expected": 2,
+            "matched": 2,
+            "missing": [],
+            "rate": 1.0
+          },
+          "currencies": {
+            "expected": 1,
+            "matched": 1,
+            "missing": [],
+            "rate": 1.0
+          },
+          "dates": {
+            "expected": 1,
+            "matched": 1,
+            "missing": [],
+            "rate": 1.0
+          },
+          "named_entities": {
+            "expected": 2,
+            "matched": 2,
+            "missing": [],
+            "rate": 1.0
+          }
+        },
+        "missing_invariants": [],
+        "max_4gram_count": 1,
+        "ngram_4_repeat_rate": 0.0,
+        "repetition_flag": false,
+        "lexical_distance": 0.0,
+        "verbatim_echo_flag": true
+      },
+      "error": null
+    }
+  ]
+}

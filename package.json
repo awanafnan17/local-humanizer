@@ -9,6 +9,9 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
+    "test:unit": "node --test src/test/*.test.mjs",
+    "test:ui": "npm run build && node src/test/ui.playwright.mjs",
+    "test": "npm run test:unit && npm run test:ui",
     "tauri": "tauri"
   },
   "dependencies": {
