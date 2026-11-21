@@ -62,8 +62,15 @@ This document catalogs every reproducible test suite, command, and observed resu
   - Sending `SIGTERM` to the `.app` PID reaped `llama-server` cleanly (`ZERO_ORPHAN_LLAMA_SERVER`, `ZERO_ORPHAN_GUI`, `ZERO_RESIDUAL_SOCKETS`).
 
 ### 1.5 GitHub Actions CI & Release Workflows
-- `.github/workflows/ci.yml`: `PENDING` remote GitHub Actions verification (updated after push).
-- `.github/workflows/release.yml` (`workflow_dispatch`): `PENDING` remote GitHub Actions verification (updated after push).
+- **`.github/workflows/ci.yml` (`PASS`):** Verified on `awanafnan17/local-humanizer` run [`44891110914`](https://github.com/awanafnan17/local-humanizer/actions/runs/44891110914) (commit `afb0508`):
+  - `Frontend (Audit, Typecheck, Build, Unit, Playwright UI, E2E)`: `PASS` (`1m1s`)
+  - `Rust Backend (Check, Clippy, Test, Audit)`: `PASS` (`3m43s`, `69/69` unit tests on `ubuntu-latest`)
+  - `Privacy, Notices & Git Hygiene`: `PASS` (`6s`)
+- **`.github/workflows/release.yml` (`PASS` via `workflow_dispatch`):** Verified on run [`44890685142`](https://github.com/awanafnan17/local-humanizer/actions/runs/44890685142) (commit `6d52c12`):
+  - `Build (windows-x64)` NSIS: `PASS` (`16m21s`) -> `LocalHumanizer-Windows-Setup.exe` (Artifact `14701943358`, SHA-256 `1a56b2df673b81da5fdb9dfd11e55f82c7ed6be446ea4e0aa176b8777bce3807`)
+  - `Build (macos-arm64)` DMG: `PASS` (`9m40s`) -> `LocalHumanizer-macOS.dmg` (Artifact `14702022270`, SHA-256 `66d0836df05362e5ec8bbd35176207313e3f2972fd50d10bce048da38caff391`)
+  - `Build (macos-x64)` DMG: `PASS` (`8m38s`) -> `LocalHumanizer-macOS-x64.dmg` (Artifact `14701803381`, SHA-256 `a4f000885772a269a262ce5f2e6297ba7c07d9b72e7ab64744301feb353cf816`)
+  - `Publish Checksummed GitHub Release` (`v*` tag trigger): Deferred to M6 after E2E Tiers 1–5 pass.
 
 ---
 

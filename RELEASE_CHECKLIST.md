@@ -35,8 +35,8 @@
 - [x] `PASS` — `bash scripts/package-macos.sh` builds `Local Humanizer.app` (`1.07 GiB`, ad-hoc `codesign --verify --deep --strict`) and `dist-release/LocalHumanizer-macOS.dmg` (`1,119,379,933` bytes, SHA-256 `53cb62afe1076b5e358b84460545969c0b70f63c13fe2eabbe5403d57c89a44d`).
 - [x] `PASS` — `bash scripts/verify-checksums.sh --require-release` verifies `SHA256SUMS.txt`.
 - [x] `PASS` — Live `.app` verification confirms bundled resources inside `.app/Contents/Resources/resources/`, `127.0.0.1` binding, `/v1/models` `401` bearer enforcement, single-instance behavior, and `SIGTERM` reaping (`ZERO_ORPHAN_LLAMA_SERVER`).
-- [ ] `PENDING` — Public GitHub repository `awanafnan17/local-humanizer` pushed and `.github/workflows/ci.yml` passing remotely.
-- [ ] `PENDING` — `.github/workflows/release.yml` (`workflow_dispatch`) cross-platform matrix (`macos-arm64`, `macos-x64`, `windows-x64` NSIS) verified.
+- [x] `PASS` — Public GitHub repository `https://github.com/awanafnan17/local-humanizer` pushed and `.github/workflows/ci.yml` passed remotely (Run [`44891110914`](https://github.com/awanafnan17/local-humanizer/actions/runs/44891110914): `Frontend` `1m1s`, `Rust Backend` `3m43s`, `Privacy, Notices & Git Hygiene` `6s`).
+- [x] `PASS` — `.github/workflows/release.yml` (`workflow_dispatch`) cross-platform matrix verified (Run [`44890685142`](https://github.com/awanafnan17/local-humanizer/actions/runs/44890685142): `windows-x64` NSIS `LocalHumanizer-Windows-Setup.exe` `16m21s`, `macos-arm64` `LocalHumanizer-macOS.dmg` `9m40s`, `macos-x64` `LocalHumanizer-macOS-x64.dmg` `8m38s`).
 
 ## 6. M6 E2E & Adversarial Release Gates
 
