@@ -1216,7 +1216,43 @@ mod tests {
 
         let manifest_dir = crate::models::resolve_bundled_models_dir(None).unwrap();
         let manifest = load_manifest_from_path(&manifest_dir.join("models.json")).unwrap();
-        let runtime_dir = resolve_runtime_dir(None).unwrap();
+        let runtime_dir = tmp.path().join("runtime");
+        std::fs::create_dir_all(&runtime_dir).unwrap();
+        let bin_name = if cfg!(target_os = "windows") {
+            "llama-server.exe"
+        } else {
+            "llama-server"
+        };
+        let bin_path = runtime_dir.join(bin_name);
+        std::fs::write(&bin_path, b"dummy-runtime").unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = std::fs::metadata(&bin_path).unwrap().permissions();
+            perms.set_mode(0o755);
+            std::fs::set_permissions(&bin_path, perms).unwrap();
+        }
+        #[cfg(target_os = "macos")]
+        {
+            for lib in [
+                "libllama-server-impl.dylib",
+                "libllama-common.1.dylib",
+                "libmtmd.1.dylib",
+                "libllama.1.dylib",
+                "libggml.1.dylib",
+                "libggml-cpu.1.dylib",
+                "libggml-blas.1.dylib",
+                "libggml-metal.1.dylib",
+                "libggml-rpc.1.dylib",
+                "libggml-base.1.dylib",
+            ] {
+                std::fs::write(runtime_dir.join(lib), b"dummy").unwrap();
+            }
+        }
+        #[cfg(target_os = "windows")]
+        {
+            std::fs::write(runtime_dir.join("llama.dll"), b"dummy").unwrap();
+        }
 
         let state = AppState::new();
         {
