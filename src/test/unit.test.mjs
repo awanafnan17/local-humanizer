@@ -80,8 +80,15 @@ test("wordCount: computeWordDeltaPercent and segmentParagraphChunks", () => {
 
   const para = Array.from({ length: 180 }, () => "alpha").join(" ");
   const doc = `${para}\n\n${para}\n\n${para}`;
-  const chunks = segmentParagraphChunks(doc, 320);
+  const chunks = segmentParagraphChunks(doc);
   assert.equal(chunks.length, 3);
+
+  const shortParas = [
+    Array.from({ length: 40 }, () => "one").join(" "),
+    Array.from({ length: 40 }, () => "two").join(" "),
+    Array.from({ length: 40 }, () => "three").join(" "),
+  ].join("\n\n");
+  assert.equal(segmentParagraphChunks(shortParas).length, 3);
 });
 
 test("humanizeState: readiness gating and display across all runtime states", () => {
@@ -395,21 +402,21 @@ test("regression: countWords \\ufeff parity and segmentParagraphChunks giant-par
   assert.equal(countWords("\ufeff"), 0);
   assert.equal(countWords("\ufeffhello"), 1);
 
-  // Giant single paragraph (>350 words) without blank lines must split at sentence boundaries
+  // Giant single paragraph (>180 words) without blank lines must split at sentence boundaries
   const sentences = Array.from(
-    { length: 50 },
+    { length: 30 },
     (_, i) =>
       `Sentence ${i + 1} explains how Dr. Smith measured a 3.14 ratio across twenty reliable local tests.`,
   );
   const giantPara = sentences.join(" ");
-  assert.ok(countWords(giantPara) > 700);
-  const giantChunks = segmentParagraphChunks(giantPara, 320);
-  assert.ok(giantChunks.length >= 2, `Expected >=2 chunks, got ${giantChunks.length}`);
+  assert.ok(countWords(giantPara) > 400);
+  const giantChunks = segmentParagraphChunks(giantPara);
+  assert.ok(giantChunks.length >= 3, `Expected >=3 chunks, got ${giantChunks.length}`);
   for (const ch of giantChunks) {
-    assert.ok(countWords(ch) <= 350, `Chunk exceeded 350 words: ${countWords(ch)}`);
+    assert.ok(countWords(ch) <= 180, `Chunk exceeded 180 words: ${countWords(ch)}`);
   }
 
-  // Fenced code blocks and $$ display math must be skipped from prose chunks
+  // Fenced code blocks and $$ display math must flush prior prose and be skipped from prose chunks
   const fencedDoc = [
     "Introductory prose paragraph.",
     "",
@@ -424,10 +431,33 @@ test("regression: countWords \\ufeff parity and segmentParagraphChunks giant-par
     "",
     "Closing prose paragraph.",
   ].join("\n");
-  const fencedChunks = segmentParagraphChunks(fencedDoc, 320);
-  assert.equal(fencedChunks.length, 1);
-  assert.equal(fencedChunks[0].includes("def helper"), false);
-  assert.equal(fencedChunks[0].includes("E = mc^2"), false);
-  assert.ok(fencedChunks[0].includes("Introductory prose paragraph."));
-  assert.ok(fencedChunks[0].includes("Closing prose paragraph."));
+  const fencedChunks = segmentParagraphChunks(fencedDoc);
+  assert.equal(fencedChunks.length, 2);
+  assert.equal(fencedChunks[0], "Introductory prose paragraph.");
+  assert.equal(fencedChunks[1], "Closing prose paragraph.");
+
+  // Markdown ATX headings (h1-h6) must be preserved as structural blocks and excluded from prose chunks
+  const mdHeadingDoc = [
+    "# Title",
+    "",
+    "## 1. Introduction and Operational Context",
+    "",
+    "First prose paragraph.",
+    "",
+    "```python",
+    "# Python comment inside code",
+    "x = 1",
+    "```",
+    "",
+    "### Subsection",
+    "Second prose paragraph.",
+    "",
+    "#hashtag remains prose.",
+  ].join("\n");
+  const mdChunks = segmentParagraphChunks(mdHeadingDoc);
+  assert.deepEqual(mdChunks, [
+    "First prose paragraph.",
+    "Second prose paragraph.",
+    "#hashtag remains prose.",
+  ]);
 });

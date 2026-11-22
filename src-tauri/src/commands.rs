@@ -170,6 +170,10 @@ pub struct HumanizeResponse {
     pub warnings: Vec<String>,
     pub duration_ms: u64,
     pub cancelled: bool,
+    #[serde(default)]
+    pub failed: bool,
+    #[serde(default)]
+    pub error_message: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -1040,6 +1044,8 @@ mod tests {
             warnings: vec![],
             duration_ms: 42,
             cancelled: false,
+            failed: false,
+            error_message: None,
         };
         let resp_json = serde_json::to_string(&resp).expect("serialize HumanizeResponse");
         let resp_back: HumanizeResponse =

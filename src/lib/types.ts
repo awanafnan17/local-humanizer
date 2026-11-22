@@ -87,6 +87,8 @@ export interface HumanizeResponse {
   warnings: string[];
   duration_ms: number;
   cancelled: boolean;
+  failed?: boolean;
+  error_message?: string | null;
 }
 
 export type HumanizeProgressState =

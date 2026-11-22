@@ -73,6 +73,7 @@ jobs:
           WIN_SHA="$(awk '/LocalHumanizer-Windows-Setup\.exe$/ {print $1}' release-assets/SHA256SUMS.txt)"
           ARM_SHA="$(awk '/LocalHumanizer-macOS\.dmg$/ {print $1}' release-assets/SHA256SUMS.txt)"
           X64_SHA="$(awk '/LocalHumanizer-macOS-x64\.dmg$/ {print $1}' release-assets/SHA256SUMS.txt)"
+          BUILD_SHA="$(gh run view "$RUN_ID" --repo "${{ github.repository }}" --json headSha -q .headSha 2>/dev/null || echo "${GITHUB_SHA}")"
           cat > release-notes.md <<EOF
           # Local Humanizer ${TAG} (Prerelease)
 
@@ -81,9 +82,9 @@ jobs:
 
           ## Source & Build Traceability
 
-          - **Installer binaries built at commit:** \`6d52c12c2d34ef893662829a2c1fb67db13537ae\`
-          - **GitHub Actions Release build run:** https://github.com/awanafnan17/local-humanizer/actions/runs/${RUN_ID}
-          - **Release tag (\`${TAG}\`) commit:** \`${GITHUB_SHA}\` (only CI unit-test helper commit \`afb0508\` and documentation/release-metadata commits were added after \`6d52c12\`; zero runtime source changes)
+          - **Installer binaries built at commit:** \`${BUILD_SHA}\`
+          - **GitHub Actions Release build run:** https://github.com/${{ github.repository }}/actions/runs/${RUN_ID}
+          - **Release tag (\`${TAG}\`) commit:** \`${GITHUB_SHA}\`
 
           ## Release Assets
 
@@ -94,27 +95,16 @@ jobs:
           | \`LocalHumanizer-macOS-x64.dmg\` | macOS Intel (\`x86_64\`) | ${X64_SIZE} | \`${X64_SHA}\` |
           | \`SHA256SUMS.txt\` | Checksums | — | Verified with \`sha256sum -c\` |
 
-          ## Verified Scope (M1–M5)
+          ## Platform & Signing Notes
 
-          - **M1 (Clean-Room Audit):** Stripped cloud LLM adapters, tunnels, hosted detectors, and telemetry; preserved MIT & third-party licenses in [THIRD_PARTY_NOTICES.md](https://github.com/awanafnan17/local-humanizer/blob/main/THIRD_PARTY_NOTICES.md).
-          - **M2 (Model Evaluation):** Evaluated 6 GGUF candidates on an 8 GiB Apple M2 host; selected bundled \`Qwen3-1.7B-Q4_K_M.gguf\` (Apache-2.0) after \`3,102\`-word CPU & Metal verification (\`38/38\` invariants).
-          - **M3 (Rust Engine & Lifecycle):** \`cargo clippy --all-targets\` exit \`0\`; \`69/69\` unit tests; \`3/3\` live \`llama-server\` integration tests (\`3,766\` words, auth, process reaping).
-          - **M4 (Desktop UI):** \`npm run typecheck && npm run build\` exit \`0\`; \`8/8\` unit tests; \`13/13\` Playwright UI groups.
-          - **M5 (Packaging & CI/CD):** Local Apple Silicon \`.app\` / DMG verified (bundled model & runtime, loopback \`127.0.0.1\` + bearer auth, single-instance lock, \`SIGTERM\` reaping); GitHub Actions CI run [44891110914](https://github.com/awanafnan17/local-humanizer/actions/runs/44891110914) and Release matrix run [44890685142](https://github.com/awanafnan17/local-humanizer/actions/runs/44890685142) passed.
-
-          ## Unverified / Deferred / Blocked QA Limitations
-
-          - **M6 Opaque-Box E2E Suite (\`DEFERRED / NOT COMPLETED\`):** Full \`>=25\`-document writing-quality evaluation suite, \`30\` adversarial test scenarios, Tier-5 hardening, formal Gates A–H sign-off, and independent Victory Audit were deferred for this prerelease.
-          - **Physical Windows \`x86_64\` Runtime (\`BLOCKED / UNVERIFIED\`):** Built on GitHub \`windows-latest\`, not yet tested on physical Windows hardware (NSIS install flow, Start Menu / Desktop shortcut, \`llama-server.exe\`, Job Object reaping, clean uninstall).
-          - **Bare-Metal Intel macOS \`x86_64\` (\`BLOCKED / UNVERIFIED\`):** Cross-compiled on CI; not yet executed on physical Intel Mac hardware.
-          - **Code Signing & Notarization (\`BLOCKED / UNVERIFIED\`):** macOS builds are ad-hoc signed only (not Apple Developer ID notarized; Gatekeeper requires explicit allowance), and the Windows NSIS installer is unsigned (SmartScreen warning expected). See [INSTALLATION.md](https://github.com/awanafnan17/local-humanizer/blob/main/INSTALLATION.md).
+          - **macOS Apple Silicon (\`arm64\`):** Ad-hoc signed locally / in CI (not Apple Developer ID notarized; Gatekeeper requires explicit allowance via right-click -> Open or \`xattr -dr com.apple.quarantine\`).
+          - **Windows (\`x86_64\`) & Intel macOS (\`x86_64\`):** Built via GitHub Actions matrix for \`${BUILD_SHA}\`; Windows NSIS installer is unsigned (SmartScreen prompt expected). See [INSTALLATION.md](https://github.com/${{ github.repository }}/blob/main/INSTALLATION.md).
 
           ## Documentation
 
-          - [INSTALLATION.md](https://github.com/awanafnan17/local-humanizer/blob/main/INSTALLATION.md)
-          - [FINAL_VERIFICATION_REPORT.md](https://github.com/awanafnan17/local-humanizer/blob/main/FINAL_VERIFICATION_REPORT.md)
-          - [SECURITY.md](https://github.com/awanafnan17/local-humanizer/blob/main/SECURITY.md)
-          - [THIRD_PARTY_NOTICES.md](https://github.com/awanafnan17/local-humanizer/blob/main/THIRD_PARTY_NOTICES.md)
+          - [INSTALLATION.md](https://github.com/${{ github.repository }}/blob/main/INSTALLATION.md)
+          - [SECURITY.md](https://github.com/${{ github.repository }}/blob/main/SECURITY.md)
+          - [THIRD_PARTY_NOTICES.md](https://github.com/${{ github.repository }}/blob/main/THIRD_PARTY_NOTICES.md)
           EOF
           python3 -c '
           from pathlib import Path

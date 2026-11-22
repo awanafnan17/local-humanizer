@@ -2,11 +2,11 @@ use crate::commands::RewriteOptions;
 use crate::engine::protect::{extract_invariants, protected_split_intervals, InvariantSet};
 use crate::engine::segmenter::{count_paragraphs, count_words, Segment, SegmentKind};
 
-pub const MIN_TARGET_WORDS: usize = 240;
-pub const MAX_TARGET_WORDS: usize = 330;
-pub const HARD_CAP_WORDS: usize = 350;
-const MAX_CHUNK_BYTES: usize = 1500;
-const MAX_CONTEXT_WORDS: usize = 85;
+pub const MIN_TARGET_WORDS: usize = 90;
+pub const MAX_TARGET_WORDS: usize = 150;
+pub const HARD_CAP_WORDS: usize = 180;
+const MAX_CHUNK_BYTES: usize = 1200;
+const MAX_CONTEXT_WORDS: usize = 70;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ChunkJoin {
@@ -297,54 +297,9 @@ pub fn build_work_units(segments: &[Segment], options: &RewriteOptions) -> Vec<W
     let mut chunk_counter = 0usize;
     let mut has_emitted_unit = false;
 
-    let mut pending_paras: Vec<&Segment> = Vec::new();
-    let mut pending_words = 0usize;
-
-    let flush_pending = |pending_paras: &mut Vec<&Segment>,
-                         pending_words: &mut usize,
-                         units: &mut Vec<WorkUnit>,
-                         chunk_counter: &mut usize,
-                         has_emitted_unit: &mut bool| {
-        if pending_paras.is_empty() {
-            return;
-        }
-        let text = pending_paras
-            .iter()
-            .map(|s| s.text.as_str())
-            .collect::<Vec<_>>()
-            .join("\n\n");
-        let wc = count_words(&text);
-        let p_count = pending_paras.len();
-        let join = if *has_emitted_unit {
-            ChunkJoin::ParagraphBreak
-        } else {
-            ChunkJoin::First
-        };
-        let inv = extract_invariants(&text, options);
-        units.push(WorkUnit::ParaphraseChunk(ChunkSpec {
-            chunk_index: *chunk_counter,
-            text,
-            word_count: wc,
-            paragraph_count: p_count,
-            join_with_prev: join,
-            invariants: inv,
-        }));
-        *chunk_counter += 1;
-        *has_emitted_unit = true;
-        pending_paras.clear();
-        *pending_words = 0;
-    };
-
     for seg in segments {
         match &seg.kind {
             SegmentKind::VerbatimBlock { .. } => {
-                flush_pending(
-                    &mut pending_paras,
-                    &mut pending_words,
-                    &mut units,
-                    &mut chunk_counter,
-                    &mut has_emitted_unit,
-                );
                 let join = if has_emitted_unit {
                     ChunkJoin::ParagraphBreak
                 } else {
@@ -359,13 +314,6 @@ pub fn build_work_units(segments: &[Segment], options: &RewriteOptions) -> Vec<W
             }
             SegmentKind::Prose { .. } => {
                 if seg.word_count == 0 {
-                    flush_pending(
-                        &mut pending_paras,
-                        &mut pending_words,
-                        &mut units,
-                        &mut chunk_counter,
-                        &mut has_emitted_unit,
-                    );
                     let join = if has_emitted_unit {
                         ChunkJoin::ParagraphBreak
                     } else {
@@ -379,19 +327,14 @@ pub fn build_work_units(segments: &[Segment], options: &RewriteOptions) -> Vec<W
                     has_emitted_unit = true;
                     continue;
                 }
+
+                let first_join = if has_emitted_unit {
+                    ChunkJoin::ParagraphBreak
+                } else {
+                    ChunkJoin::First
+                };
+
                 if seg.word_count > HARD_CAP_WORDS || seg.text.len() > MAX_CHUNK_BYTES * 2 {
-                    flush_pending(
-                        &mut pending_paras,
-                        &mut pending_words,
-                        &mut units,
-                        &mut chunk_counter,
-                        &mut has_emitted_unit,
-                    );
-                    let first_join = if has_emitted_unit {
-                        ChunkJoin::ParagraphBreak
-                    } else {
-                        ChunkJoin::First
-                    };
                     for (sub_text, sub_join) in split_giant_paragraph(&seg.text, first_join) {
                         let wc = count_words(&sub_text);
                         let p_count = count_paragraphs(&sub_text).max(1);
@@ -410,33 +353,20 @@ pub fn build_work_units(segments: &[Segment], options: &RewriteOptions) -> Vec<W
                     continue;
                 }
 
-                let would_exceed_target = pending_words + seg.word_count > MAX_TARGET_WORDS;
-                let would_exceed_hard = pending_words + seg.word_count > HARD_CAP_WORDS;
-                if !pending_paras.is_empty()
-                    && (would_exceed_hard || (would_exceed_target && pending_words >= MIN_TARGET_WORDS))
-                {
-                    flush_pending(
-                        &mut pending_paras,
-                        &mut pending_words,
-                        &mut units,
-                        &mut chunk_counter,
-                        &mut has_emitted_unit,
-                    );
-                }
-
-                pending_words += seg.word_count;
-                pending_paras.push(seg);
+                let inv = extract_invariants(&seg.text, options);
+                units.push(WorkUnit::ParaphraseChunk(ChunkSpec {
+                    chunk_index: chunk_counter,
+                    text: seg.text.clone(),
+                    word_count: seg.word_count,
+                    paragraph_count: 1,
+                    join_with_prev: first_join,
+                    invariants: inv,
+                }));
+                chunk_counter += 1;
+                has_emitted_unit = true;
             }
         }
     }
-
-    flush_pending(
-        &mut pending_paras,
-        &mut pending_words,
-        &mut units,
-        &mut chunk_counter,
-        &mut has_emitted_unit,
-    );
 
     units
 }
@@ -477,7 +407,7 @@ mod tests {
     }
 
     #[test]
-    fn chunks_3100_word_document_into_240_to_350_word_windows() {
+    fn chunks_3100_word_document_into_single_paragraph_and_sentence_group_windows() {
         let mut paras = Vec::new();
         for p in 0..35 {
             let mut s = format!("Paragraph {p} begins with a clear factual claim about system reliability. ");
@@ -499,13 +429,45 @@ mod tests {
                 _ => None,
             })
             .collect();
-        assert!(chunks.len() >= 8);
+        assert_eq!(chunks.len(), 35);
         for (i, ch) in chunks.iter().enumerate() {
             assert_eq!(ch.chunk_index, i);
+            assert_eq!(ch.paragraph_count, 1);
             assert!(ch.word_count <= HARD_CAP_WORDS, "chunk {i} exceeded cap: {}", ch.word_count);
             if i > 0 {
                 assert_eq!(ch.join_with_prev, ChunkJoin::ParagraphBreak);
             }
+        }
+    }
+
+    #[test]
+    fn single_paragraph_chunking_splits_above_hard_cap_without_packing_multiple_paragraphs() {
+        let short_p1 = "First concise paragraph with ten simple words inside it.";
+        let short_p2 = "Second concise paragraph also kept in its own unit.";
+        let long_p3 = (0..22)
+            .map(|i| format!("Sentence {i} describes reliable local processing across distributed nodes."))
+            .collect::<Vec<_>>()
+            .join(" ");
+        let doc = format!("{short_p1}\n\n{short_p2}\n\n{long_p3}");
+        let segs = segment_document(&sanitize_input(&doc));
+        let units = build_work_units(&segs, &default_opts());
+        let chunks: Vec<&ChunkSpec> = units
+            .iter()
+            .filter_map(|u| match u {
+                WorkUnit::ParaphraseChunk(c) => Some(c),
+                _ => None,
+            })
+            .collect();
+        assert!(chunks.len() >= 4);
+        assert_eq!(chunks[0].text, short_p1);
+        assert_eq!(chunks[0].join_with_prev, ChunkJoin::First);
+        assert_eq!(chunks[1].text, short_p2);
+        assert_eq!(chunks[1].join_with_prev, ChunkJoin::ParagraphBreak);
+        assert_eq!(chunks[2].join_with_prev, ChunkJoin::ParagraphBreak);
+        assert_eq!(chunks[3].join_with_prev, ChunkJoin::Space);
+        for ch in chunks {
+            assert_eq!(ch.paragraph_count, 1);
+            assert!(ch.word_count <= HARD_CAP_WORDS);
         }
     }
 
@@ -548,10 +510,10 @@ mod tests {
     }
 
     #[test]
-    fn trailing_sentences_caps_at_two_sentences_and_85_words() {
+    fn trailing_sentences_caps_at_two_sentences_and_70_words() {
         let s = "First sentence here. Second sentence is concise. ".repeat(10);
         let t = trailing_sentences(&s, 2);
-        assert!(count_words(&t) <= 85);
+        assert!(count_words(&t) <= MAX_CONTEXT_WORDS);
         assert_eq!(split_sentences_safe(&t).len(), 2);
     }
 
@@ -594,5 +556,17 @@ mod tests {
             ordinary_p_word,
             vec!["He took a nap.", "Next sentence."]
         );
+    }
+
+    #[test]
+    fn markdown_headings_emit_verbatim_units_and_keep_chunk_indices_contiguous() {
+        let doc = "## 1. Introduction and Operational Context\n\nFirst prose paragraph.\n\n### 1.1 Scope\n\nSecond prose paragraph.";
+        let segs = segment_document(&sanitize_input(doc));
+        let units = build_work_units(&segs, &default_opts());
+        assert_eq!(units.len(), 4);
+        assert!(matches!(&units[0], WorkUnit::Verbatim { text, join_with_prev: ChunkJoin::First, .. } if text == "## 1. Introduction and Operational Context"));
+        assert!(matches!(&units[1], WorkUnit::ParaphraseChunk(c) if c.chunk_index == 0 && c.text == "First prose paragraph." && c.join_with_prev == ChunkJoin::ParagraphBreak));
+        assert!(matches!(&units[2], WorkUnit::Verbatim { text, join_with_prev: ChunkJoin::ParagraphBreak, .. } if text == "### 1.1 Scope"));
+        assert!(matches!(&units[3], WorkUnit::ParaphraseChunk(c) if c.chunk_index == 1 && c.text == "Second prose paragraph." && c.join_with_prev == ChunkJoin::ParagraphBreak));
     }
 }

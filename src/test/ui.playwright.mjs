@@ -356,9 +356,9 @@ async function runSuite() {
         };
       });
       try {
-        const para1 = Array.from({ length: 220 }, (_, i) => `first${i}`).join(" ");
-        const para2 = Array.from({ length: 220 }, (_, i) => `utilize second${i}`).join(" ");
-        const para3 = Array.from({ length: 220 }, (_, i) => `third${i}`).join(" ");
+        const para1 = Array.from({ length: 120 }, (_, i) => `first${i}`).join(" ");
+        const para2 = Array.from({ length: 120 }, (_, i) => `utilize second${i}`).join(" ");
+        const para3 = Array.from({ length: 120 }, (_, i) => `third${i}`).join(" ");
         await page.getByTestId("original-textarea").fill(`${para1}\n\n${para2}\n\n${para3}`);
 
         await page.getByTestId("humanize-button").click();
@@ -435,7 +435,7 @@ async function runSuite() {
         };
       });
       try {
-        const para = Array.from({ length: 240 }, (_, i) => `chunk${i}`).join(" ");
+        const para = Array.from({ length: 120 }, (_, i) => `chunk${i}`).join(" ");
         await page.getByTestId("original-textarea").fill(`${para}\n\n${para}\n\n${para}`);
         await page.getByTestId("humanize-button").click();
         await page.getByTestId("cancel-humanize-button").waitFor();
@@ -934,9 +934,9 @@ async function runSuite() {
           };
         });
         try {
-          const p1 = Array.from({ length: 200 }, (_, i) => `p1w${i}`).join(" ");
-          const p2 = Array.from({ length: 200 }, (_, i) => `p2w${i}`).join(" ");
-          const p3 = Array.from({ length: 200 }, (_, i) => `p3w${i}`).join(" ");
+          const p1 = Array.from({ length: 120 }, (_, i) => `p1w${i}`).join(" ");
+          const p2 = Array.from({ length: 120 }, (_, i) => `p2w${i}`).join(" ");
+          const p3 = Array.from({ length: 120 }, (_, i) => `p3w${i}`).join(" ");
           await page.getByTestId("original-textarea").fill(`${p1}\n\n${p2}\n\n${p3}`);
           await page.getByTestId("humanize-button").click();
           await page.waitForFunction(
@@ -979,6 +979,54 @@ async function runSuite() {
           assert.equal(
             await page.getByTestId("original-textarea").inputValue(),
             "keep-existing-text",
+          );
+        } finally {
+          await context.close();
+        }
+      }
+
+      // 8) Explicit paraphrasing failure clears stale output, preserves input, and displays error state
+      {
+        const { context, page } = await createTrackedPage(() => {
+          window.__LOCAL_HUMANIZER_MOCK_IPC__ = {
+            invoke: async (cmd, args) => {
+              if (cmd === "humanize_document") {
+                const req = args.req;
+                return {
+                  request_id: req.request_id,
+                  output_text: "",
+                  chunks_total: 1,
+                  chunks_completed: 0,
+                  chunks_retried: 1,
+                  warnings: ["Chunk 1 remained too close to source."],
+                  duration_ms: 20,
+                  cancelled: false,
+                  failed: true,
+                  error_message:
+                    "Paraphrasing stopped at chunk 1 because generated phrasing remained too close to the original source.",
+                };
+              }
+              return undefined;
+            },
+          };
+        });
+        try {
+          await page.getByTestId("humanized-textarea").fill("STALE_OLD_OUTPUT");
+          await page.getByTestId("original-textarea").fill("Keep this original draft intact.");
+          await page.getByTestId("humanize-button").click();
+          await page.waitForFunction(
+            () =>
+              document.querySelector('[data-testid="progress-banner"]')?.getAttribute("data-state") ===
+              "error",
+          );
+          assert.equal(await page.getByTestId("humanized-textarea").inputValue(), "");
+          assert.equal(
+            await page.getByTestId("original-textarea").inputValue(),
+            "Keep this original draft intact.",
+          );
+          assert.match(
+            await page.getByTestId("progress-error-message").innerText(),
+            /stopped at chunk 1/i,
           );
         } finally {
           await context.close();

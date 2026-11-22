@@ -379,7 +379,7 @@ export function createMockTauriRuntime(
         }
         const started = Date.now();
         cancelledHumanizeIds.delete(req.request_id);
-        const chunks = segmentParagraphChunks(req.text, 320);
+        const chunks = segmentParagraphChunks(req.text);
         const total = Math.max(1, chunks.length);
         const effectiveChunks = chunks.length > 0 ? chunks : [req.text];
         const chunkDelay = scenario.chunkDelayMs ?? 15;

@@ -110,7 +110,7 @@ export function useHumanizer(hookOptions: UseHumanizerOptions = {}) {
     inFlightRef.current = true;
     activeRequestIdRef.current = requestId;
 
-    const segmented = segmentParagraphChunks(inputText, 320);
+    const segmented = segmentParagraphChunks(inputText);
     originalChunksRef.current = segmented.length > 0 ? segmented : [inputText];
     outputChunksRef.current = [];
     chunksTotalRef.current = originalChunksRef.current.length;
@@ -123,6 +123,7 @@ export function useHumanizer(hookOptions: UseHumanizerOptions = {}) {
 
     startTimestampRef.current = Date.now();
     setElapsedMs(0);
+    setOutputText("");
     setRunState({
       ...createInitialHumanizeRunState(),
       requestId,
@@ -152,6 +153,32 @@ export function useHumanizer(hookOptions: UseHumanizerOptions = {}) {
             : 0;
       setElapsedMs(finalElapsed);
 
+      if (resp.failed) {
+        setOutputText("");
+        outputChunksRef.current = [];
+        const errMsg = sanitizeUserFacingError(
+          resp.error_message ||
+            "Paraphrasing failed to produce a sufficiently rewritten, accurate result. Your original text has been preserved.",
+        );
+        setRunState((prev) => {
+          if (prev.requestId !== requestId) return prev;
+          return {
+            ...prev,
+            isRunning: false,
+            state: "error",
+            chunksTotal: resp.chunks_total || prev.chunksTotal,
+            chunkIndex: Math.max(0, resp.chunks_completed),
+            warnings: resp.warnings ?? [],
+            flaggedChunks: [],
+            durationMs: finalElapsed,
+            cancelled: false,
+            errorMessage: errMsg,
+          };
+        });
+        notifyRef.current?.("error", errMsg);
+        return;
+      }
+
       const expectedChunks = Math.max(
         1,
         resp.chunks_total || originalChunksRef.current.length,
@@ -164,6 +191,9 @@ export function useHumanizer(hookOptions: UseHumanizerOptions = {}) {
           resp.output_text,
           expectedChunks,
         );
+      } else {
+        setOutputText("");
+        outputChunksRef.current = [];
       }
 
       setRunState((prev) => {
@@ -265,6 +295,10 @@ export function useHumanizer(hookOptions: UseHumanizerOptions = {}) {
           intensity: cfg.intensity,
           options: cfg.options,
         });
+
+        if (!resp.rewritten_chunk || !resp.rewritten_chunk.trim()) {
+          throw new Error(`Retry for chunk ${safeIndex + 1} returned empty output.`);
+        }
 
         const latestOutput = outputTextRef.current;
         const currentJoined = outputChunksRef.current

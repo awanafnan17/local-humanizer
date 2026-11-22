@@ -1367,6 +1367,20 @@ fn contains_with_boundary_single(needle: &str, haystack: &str) -> bool {
     false
 }
 
+fn quote_trailing_punct_variants(norm_needle: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    if norm_needle.len() >= 4 && norm_needle.starts_with('"') && norm_needle.ends_with('"') {
+        let inner = &norm_needle[1..norm_needle.len() - 1];
+        if !inner.ends_with(['.', ',', '!', '?']) {
+            out.push(format!("\"{inner}.\""));
+            out.push(format!("\"{inner},\""));
+        } else if let Some(stem) = inner.strip_suffix('.') {
+            out.push(format!("\"{stem},\""));
+        }
+    }
+    out
+}
+
 /// O(n) boundary-aware invariant checker (no regex lookarounds).
 pub fn contains_with_boundary(needle: &str, haystack: &str, exact_mode: bool) -> bool {
     if needle.is_empty() {
@@ -1385,6 +1399,12 @@ pub fn contains_with_boundary(needle: &str, haystack: &str, exact_mode: bool) ->
         let h_wrap = normalize_line_wraps(&h_norm);
         if h_wrap.contains(&n_wrap) {
             return true;
+        }
+        // Standard English quote-end punctuation shift when a verbatim quote moves to/from sentence end
+        for q_alt in quote_trailing_punct_variants(&n_wrap) {
+            if h_wrap.contains(&q_alt) {
+                return true;
+            }
         }
         // Case-insensitive DOI / URL host tolerance
         if (needle.starts_with("10.") || needle.starts_with("http"))
@@ -1419,7 +1439,336 @@ pub fn contains_with_boundary(needle: &str, haystack: &str, exact_mode: bool) ->
     // Case-insensitive fallback for dates / ISO currencies
     let n_lower = n_norm.to_ascii_lowercase();
     let h_lower = h_norm.to_ascii_lowercase();
-    contains_with_boundary_single(&n_lower, &h_lower)
+    if contains_with_boundary_single(&n_lower, &h_lower) {
+        return true;
+    }
+
+    // Benign month abbreviation equivalence (e.g., "January 2022" <-> "Jan 2022" / "Jan. 2022")
+    if let Some(month_alts) = month_abbreviation_variants(&n_lower) {
+        for alt in month_alts {
+            if contains_with_boundary_single(&alt, &h_lower) {
+                return true;
+            }
+        }
+    }
+
+    // Benign year-range connector equivalence (e.g., "2023-2025" / "2023–2025" <-> "2023 to 2025" / "2023 and 2025")
+    if let Some(year_alts) = year_range_variants(&n_norm) {
+        for alt in year_alts {
+            if contains_with_boundary_single(&alt, &h_lower) {
+                return true;
+            }
+        }
+    }
+
+    // Benign positive single-amount currency phrasing equivalence (e.g., "$2.4" <-> "USD 2.4" / "2.4 dollars")
+    if let Some(curr_alts) = positive_dollar_phrasing_variants(&n_norm) {
+        for alt in curr_alts {
+            let alt_lower = alt.to_ascii_lowercase();
+            if contains_with_boundary_single(&alt_lower, &h_lower) {
+                return true;
+            }
+        }
+    }
+
+    false
+}
+
+fn month_abbreviation_variants(lower_needle: &str) -> Option<Vec<String>> {
+    const MONTHS: &[(&str, &[&str])] = &[
+        ("january", &["jan", "jan."]),
+        ("february", &["feb", "feb."]),
+        ("march", &["mar", "mar."]),
+        ("april", &["apr", "apr."]),
+        ("august", &["aug", "aug."]),
+        ("september", &["sept", "sept.", "sep", "sep."]),
+        ("october", &["oct", "oct."]),
+        ("november", &["nov", "nov."]),
+        ("december", &["dec", "dec."]),
+    ];
+    for &(full, abbrevs) in MONTHS {
+        if lower_needle.contains(full) {
+            return Some(
+                abbrevs
+                    .iter()
+                    .map(|abbr| lower_needle.replacen(full, abbr, 1))
+                    .collect(),
+            );
+        }
+        for &abbr in abbrevs {
+            if lower_needle.starts_with(abbr)
+                && lower_needle[abbr.len()..]
+                    .chars()
+                    .next()
+                    .is_some_and(|c| c.is_whitespace())
+            {
+                let mut out = vec![lower_needle.replacen(abbr, full, 1)];
+                for &other in abbrevs {
+                    if other != abbr {
+                        out.push(lower_needle.replacen(abbr, other, 1));
+                    }
+                }
+                return Some(out);
+            }
+        }
+    }
+    None
+}
+
+fn year_range_variants(norm_needle: &str) -> Option<Vec<String>> {
+    let (left, right) = norm_needle.split_once('-')?;
+    let l = left.trim();
+    let r = right.trim();
+    if l.len() == 4
+        && r.len() == 4
+        && l.chars().all(|c| c.is_ascii_digit())
+        && r.chars().all(|c| c.is_ascii_digit())
+        && (l.starts_with("19") || l.starts_with("20"))
+        && (r.starts_with("19") || r.starts_with("20"))
+    {
+        return Some(vec![
+            format!("{l} to {r}"),
+            format!("{l} through {r}"),
+            format!("{l} thru {r}"),
+            format!("{l} and {r}"),
+        ]);
+    }
+    None
+}
+
+fn positive_dollar_phrasing_variants(norm_needle: &str) -> Option<Vec<String>> {
+    // Only apply to positive single dollar amounts like "$2.4" or "$1,420" (never negative "-$10" or ranges "$10-$20")
+    let rest = norm_needle.strip_prefix('$')?.trim();
+    if rest.is_empty() || rest.contains('-') || rest.contains('$') {
+        return None;
+    }
+    if !rest.chars().next().is_some_and(|c| c.is_ascii_digit()) {
+        return None;
+    }
+    let mut alts = vec![
+        format!("USD {rest}"),
+        format!("{rest} USD"),
+        format!("{rest} dollars"),
+        format!("{rest} million dollars"),
+        format!("{rest} billion dollars"),
+    ];
+    if rest.contains(',') {
+        let no_commas = rest.replace(',', "");
+        alts.push(format!("USD {no_commas}"));
+        alts.push(format!("{no_commas} USD"));
+        alts.push(format!("{no_commas} dollars"));
+    }
+    Some(alts)
+}
+
+#[derive(Debug, Clone)]
+pub struct MaskedTokens {
+    pub masked_text: String,
+    pub replacements: Vec<(String, String)>,
+}
+
+impl MaskedTokens {
+    pub fn placeholders(&self) -> Vec<String> {
+        self.replacements.iter().map(|(p, _)| p.clone()).collect()
+    }
+
+    pub fn translate_missing_items(&self, missing_items: &[String]) -> Vec<String> {
+        missing_items
+            .iter()
+            .map(|item| {
+                let raw_val = item.split_once(':').map(|(_, v)| v).unwrap_or(item.as_str());
+                if let Some((ph, _)) = self.replacements.iter().find(|(_, orig)| orig == raw_val) {
+                    format!("token:{ph}")
+                } else {
+                    item.clone()
+                }
+            })
+            .collect()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct RestoreResult {
+    pub text: String,
+    pub missing_placeholders: Vec<String>,
+    pub leaked_placeholders: Vec<String>,
+    pub duplicated_placeholders: Vec<String>,
+}
+
+fn overlaps_any(start: usize, end: usize, intervals: &[(usize, usize)]) -> bool {
+    intervals.iter().any(|&(s, e)| start < e && end > s)
+}
+
+fn leaked_token_marker_re() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| {
+        Regex::new(r"(?:\[\[[A-Z][A-Z0-9_]{1,24}\]\]|\[(?:LH_)?(?:URL|DOI|EMAIL|QUOTE)_[0-9A-Za-z_]*\]?)")
+            .unwrap()
+    })
+}
+
+/// Deterministically masks opaque machine tokens (URLs, emails, DOIs) — and optionally
+/// verbatim quoted strings — with short clean placeholders (`[[URL_1]]`, `[[DOI_1]]`,
+/// `[[EMAIL_1]]`, `[[QUOTE_1]]`) outside inline code and inline LaTeX spans so small
+/// local models cannot drop characters inside DOIs/URLs or alter quoted text.
+pub fn mask_opaque_tokens(text: &str) -> MaskedTokens {
+    mask_opaque_tokens_with_options(text, false)
+}
+
+pub fn mask_opaque_tokens_with_options(text: &str, preserve_quotes: bool) -> MaskedTokens {
+    if text.trim().is_empty() {
+        return MaskedTokens {
+            masked_text: text.to_string(),
+            replacements: Vec::new(),
+        };
+    }
+
+    let code_intervals = scan_inline_code_intervals(text);
+    let latex_intervals = scan_inline_latex_intervals(text);
+    let mut blocked = Vec::with_capacity(code_intervals.len() + latex_intervals.len());
+    blocked.extend_from_slice(&code_intervals);
+    blocked.extend_from_slice(&latex_intervals);
+
+    #[derive(Clone, Copy)]
+    enum Kind {
+        Quote,
+        Url,
+        Email,
+        Doi,
+    }
+
+    let mut spans: Vec<(usize, usize, Kind)> = Vec::new();
+    if preserve_quotes {
+        for (s, e, _) in scan_quoted_strings(text, &code_intervals) {
+            if e > s && !overlaps_any(s, e, &blocked) {
+                spans.push((s, e, Kind::Quote));
+                blocked.push((s, e));
+            }
+        }
+    }
+    for m in url_re().find_iter(text) {
+        let trimmed = trim_url_trailing(&text[m.start()..m.end()]);
+        let end = m.start() + trimmed.len();
+        if end > m.start() && !overlaps_any(m.start(), end, &blocked) {
+            spans.push((m.start(), end, Kind::Url));
+            blocked.push((m.start(), end));
+        }
+    }
+    for m in email_re().find_iter(text) {
+        if m.end() > m.start() && !overlaps_any(m.start(), m.end(), &blocked) {
+            spans.push((m.start(), m.end(), Kind::Email));
+            blocked.push((m.start(), m.end()));
+        }
+    }
+    for m in doi_re().find_iter(text) {
+        let trimmed = trim_url_trailing(&text[m.start()..m.end()]);
+        let end = m.start() + trimmed.len();
+        if end > m.start() && !overlaps_any(m.start(), end, &blocked) {
+            spans.push((m.start(), end, Kind::Doi));
+            blocked.push((m.start(), end));
+        }
+    }
+
+    if spans.is_empty() {
+        return MaskedTokens {
+            masked_text: text.to_string(),
+            replacements: Vec::new(),
+        };
+    }
+
+    spans.sort_by_key(|&(s, _, _)| s);
+
+    let mut prefix_tag = "";
+    if text.contains("[[URL_")
+        || text.contains("[[DOI_")
+        || text.contains("[[EMAIL_")
+        || text.contains("[[QUOTE_")
+    {
+        prefix_tag = "LH_";
+    }
+
+    let mut quote_idx = 0usize;
+    let mut url_idx = 0usize;
+    let mut email_idx = 0usize;
+    let mut doi_idx = 0usize;
+    let mut replacements = Vec::with_capacity(spans.len());
+    let mut masked_text = String::with_capacity(text.len());
+    let mut cursor = 0usize;
+
+    for (start, end, kind) in spans {
+        masked_text.push_str(&text[cursor..start]);
+        let label = match kind {
+            Kind::Quote => {
+                quote_idx += 1;
+                format!("[[{prefix_tag}QUOTE_{quote_idx}]]")
+            }
+            Kind::Url => {
+                url_idx += 1;
+                format!("[[{prefix_tag}URL_{url_idx}]]")
+            }
+            Kind::Email => {
+                email_idx += 1;
+                format!("[[{prefix_tag}EMAIL_{email_idx}]]")
+            }
+            Kind::Doi => {
+                doi_idx += 1;
+                format!("[[{prefix_tag}DOI_{doi_idx}]]")
+            }
+        };
+        let orig = text[start..end].to_string();
+        masked_text.push_str(&label);
+        replacements.push((label, orig));
+        cursor = end;
+    }
+    masked_text.push_str(&text[cursor..]);
+
+    MaskedTokens {
+        masked_text,
+        replacements,
+    }
+}
+
+pub fn restore_masked_tokens(output: &str, masked: &MaskedTokens, source: &str) -> RestoreResult {
+    if masked.replacements.is_empty() {
+        return RestoreResult {
+            text: output.to_string(),
+            missing_placeholders: Vec::new(),
+            leaked_placeholders: Vec::new(),
+            duplicated_placeholders: Vec::new(),
+        };
+    }
+
+    let mut restored = output.to_string();
+    let mut missing_placeholders = Vec::new();
+    let mut duplicated_placeholders = Vec::new();
+
+    for (placeholder, original) in &masked.replacements {
+        let src_ph_count = masked.masked_text.matches(placeholder).count();
+        let out_ph_count = output.matches(placeholder).count();
+        if out_ph_count > src_ph_count {
+            duplicated_placeholders.push(placeholder.clone());
+        }
+        if restored.contains(placeholder) {
+            restored = restored.replace(placeholder, original);
+        } else if !contains_with_boundary(original, &restored, true) {
+            missing_placeholders.push(placeholder.clone());
+        }
+    }
+
+    let mut leaked_placeholders = Vec::new();
+    for m in leaked_token_marker_re().find_iter(&restored) {
+        let tok = m.as_str();
+        if !source.contains(tok) {
+            leaked_placeholders.push(tok.to_string());
+        }
+    }
+
+    RestoreResult {
+        text: restored,
+        missing_placeholders,
+        leaked_placeholders,
+        duplicated_placeholders,
+    }
 }
 
 #[cfg(test)]
@@ -1527,6 +1876,9 @@ mod tests {
         assert!(contains_with_boundary("10%", "Growth was 10%.", false));
         assert!(contains_with_boundary("2026", "In 2026—specifically Q4—load grew.", false));
         assert!(contains_with_boundary("2.12.0", "Built with Tauri 2.12.0 locally.", false));
+        assert!(contains_with_boundary("2023–2025", "Trained on cohorts from 2023 to 2025.", false));
+        assert!(contains_with_boundary("2023–2025", "Trained on cohorts between 2023 and 2025.", false));
+        assert!(!contains_with_boundary("2023–2025", "Trained on cohorts from 2023 to 2024.", false));
     }
 
     #[test]
@@ -2518,5 +2870,61 @@ mod tests {
         assert!(!contains_with_boundary("2.12.0", "She said \"-2.12.0\" today.", false));
         assert!(!contains_with_boundary("2026-11-21", "$-2026-11-21", false));
         assert!(!contains_with_boundary("100", "The cost is 100,000.", false));
+    }
+
+    #[test]
+    fn masks_and_restores_urls_dois_and_emails_deterministically() {
+        let src = "Documented at https://example.org/audits/2025 and 10.1038/s41586-024-07123-4 or ops@example.org, plus `10.1038/skip-inline-code`.";
+        let masked = mask_opaque_tokens(src);
+        assert_eq!(masked.replacements.len(), 3);
+        assert!(masked.masked_text.contains("[[URL_1]]"));
+        assert!(masked.masked_text.contains("[[DOI_1]]"));
+        assert!(masked.masked_text.contains("[[EMAIL_1]]"));
+        assert!(masked.masked_text.contains("`10.1038/skip-inline-code`"));
+        assert!(!masked.masked_text.contains("10.1038/s41586-024-07123-4"));
+
+        let ok = restore_masked_tokens(
+            "As recorded under [[DOI_1]] and [[URL_1]] (contact [[EMAIL_1]]), keep `10.1038/skip-inline-code` intact.",
+            &masked,
+            src,
+        );
+        assert!(ok.missing_placeholders.is_empty());
+        assert!(ok.leaked_placeholders.is_empty());
+        assert!(ok.duplicated_placeholders.is_empty());
+        assert!(ok.text.contains("10.1038/s41586-024-07123-4"));
+        assert!(ok.text.contains("https://example.org/audits/2025"));
+        assert!(ok.text.contains("ops@example.org"));
+
+        // Duplicated placeholder is flagged cleanly
+        let dup = restore_masked_tokens(
+            "[[DOI_1]] documents findings at [[URL_1]] and [[DOI_1]] via [[EMAIL_1]].",
+            &masked,
+            src,
+        );
+        assert_eq!(dup.duplicated_placeholders, vec!["[[DOI_1]]".to_string()]);
+
+        // Missing or corrupted placeholder is flagged cleanly
+        let dropped = restore_masked_tokens(
+            "As recorded under [[DOI_2]] and [[URL_1]] (contact [[EMAIL_1]]).",
+            &masked,
+            src,
+        );
+        assert_eq!(dropped.missing_placeholders, vec!["[[DOI_1]]".to_string()]);
+        assert_eq!(dropped.leaked_placeholders, vec!["[[DOI_2]]".to_string()]);
+
+        let quote_src = "According to [12], \"exact statements like https://example.org/x must stay intact\" at https://example.org/audits/2025.";
+        let q_masked = mask_opaque_tokens_with_options(quote_src, true);
+        assert!(q_masked.masked_text.contains("[[QUOTE_1]]"));
+        assert!(q_masked.masked_text.contains("[[URL_1]]"));
+        assert!(!q_masked.masked_text.contains("exact statements"));
+        let q_restored = restore_masked_tokens(
+            "At [[URL_1]], report [12] affirms [[QUOTE_1]].",
+            &q_masked,
+            quote_src,
+        );
+        assert!(q_restored.missing_placeholders.is_empty());
+        assert!(q_restored.leaked_placeholders.is_empty());
+        assert!(q_restored.text.contains("\"exact statements like https://example.org/x must stay intact\""));
+        assert!(q_restored.text.contains("https://example.org/audits/2025"));
     }
 }

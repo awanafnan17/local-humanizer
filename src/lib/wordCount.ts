@@ -91,7 +91,9 @@ export function computeWordDeltaPercent(
   };
 }
 
-const HARD_CAP_WORDS = 350;
+const MIN_TARGET_WORDS = 90;
+const DEFAULT_TARGET_WORDS = 150;
+const HARD_CAP_WORDS = 180;
 const KNOWN_ABBREVS = [
   "dr.",
   "mr.",
@@ -205,6 +207,11 @@ function extractProseParagraphs(normalized: string): string[] {
       continue;
     }
 
+    if (/^#{1,6}[ \t]+\S/.test(trimmedStart)) {
+      flushProse();
+      continue;
+    }
+
     if (trimmed.length === 0) {
       flushProse();
     } else {
@@ -231,6 +238,19 @@ function endsWithKnownAbbreviation(prefix: string): boolean {
     if (/[A-Z]/.test(prev) && (trimmed.length === 2 || !/[A-Za-z0-9]/.test(before))) {
       return true;
     }
+  }
+  return false;
+}
+
+function isPageAbbrev(prefix: string, suffix: string): boolean {
+  const trimmed = prefix.trimEnd();
+  if (
+    trimmed.length >= 2 &&
+    trimmed.endsWith(".") &&
+    (trimmed[trimmed.length - 2] === "p" || trimmed[trimmed.length - 2] === "P") &&
+    (trimmed.length === 2 || !/[A-Za-z0-9]/.test(trimmed[trimmed.length - 3]))
+  ) {
+    return /^[0-9]/.test(suffix.trimStart());
   }
   return false;
 }
@@ -281,7 +301,11 @@ function splitSentencesSafe(text: string): string[] {
     if (!nextIsBoundary) {
       continue;
     }
-    if (ch === "." && endsWithKnownAbbreviation(text.slice(start, endPunct))) {
+    if (
+      ch === "." &&
+      (endsWithKnownAbbreviation(text.slice(start, endPunct)) ||
+        isPageAbbrev(text.slice(start, endPunct), text.slice(endPunct)))
+    ) {
       continue;
     }
 
@@ -307,7 +331,7 @@ function splitSentencesSafe(text: string): string[] {
 
 function splitGiantParagraph(text: string, targetWordsPerChunk: number): string[] {
   const sentences = splitSentencesSafe(text);
-  const minTarget = Math.min(240, Math.floor(targetWordsPerChunk * 0.75));
+  const minTarget = Math.min(MIN_TARGET_WORDS, Math.floor(targetWordsPerChunk * 0.6));
   if (sentences.length === 0) {
     return [text];
   }
@@ -359,13 +383,14 @@ function splitGiantParagraph(text: string, targetWordsPerChunk: number): string[
 }
 
 /**
- * Segment document into paragraph-aware chunks matching backend chunking boundaries
- * (splitting giant >350-word paragraphs at sentence boundaries and skipping fenced
- * code blocks / `$$` display math) so client-side chunk retry aligns with M3 `chunks_total`.
+ * Segment document into single-paragraph / sentence-group chunks matching backend
+ * `chunker.rs` boundaries (target 90-150 words, hard cap 180 words, flushing before
+ * fenced code blocks / `$$` display math and skipping zero-word separators) so
+ * client-side chunk retry aligns with backend `chunks_total`.
  */
 export function segmentParagraphChunks(
   text: string,
-  targetWordsPerChunk = 320,
+  targetWordsPerChunk = DEFAULT_TARGET_WORDS,
 ): string[] {
   const normalized = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim();
   if (!normalized) return [];
@@ -374,39 +399,19 @@ export function segmentParagraphChunks(
   if (paragraphs.length === 0) return [];
 
   const chunks: string[] = [];
-  let currentParts: string[] = [];
-  let currentWords = 0;
-
-  const flushCurrent = () => {
-    if (currentParts.length > 0) {
-      chunks.push(currentParts.join("\n\n"));
-      currentParts = [];
-      currentWords = 0;
-    }
-  };
-
   for (const para of paragraphs) {
     const paraWords = countWords(para);
+    if (paraWords === 0) {
+      continue;
+    }
     if (paraWords > HARD_CAP_WORDS) {
-      flushCurrent();
       for (const sub of splitGiantParagraph(para, targetWordsPerChunk)) {
         chunks.push(sub);
       }
-      continue;
-    }
-    if (
-      currentParts.length > 0 &&
-      currentWords + paraWords > targetWordsPerChunk
-    ) {
-      flushCurrent();
-      currentParts = [para];
-      currentWords = paraWords;
     } else {
-      currentParts.push(para);
-      currentWords += paraWords;
+      chunks.push(para);
     }
   }
 
-  flushCurrent();
   return chunks;
 }

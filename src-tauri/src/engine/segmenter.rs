@@ -255,19 +255,26 @@ fn collapse_excessive_spaces(line: &str) -> String {
     out
 }
 
+fn detect_atx_heading_hashes(line: &str) -> Option<usize> {
+    let trimmed_start = line.trim_start();
+    let hashes = trimmed_start.chars().take_while(|&c| c == '#').count();
+    if !(1..=6).contains(&hashes) {
+        return None;
+    }
+    let after_hashes = &trimmed_start[hashes..];
+    let first_after = after_hashes.chars().next()?;
+    if first_after != ' ' && first_after != '\t' {
+        return None;
+    }
+    if after_hashes.trim().is_empty() {
+        return None;
+    }
+    Some(hashes)
+}
+
 fn detect_heading_or_list(text: &str) -> (bool, bool) {
     let trimmed = text.trim_start();
-    let is_heading = trimmed.starts_with('#')
-        && trimmed
-            .chars()
-            .take_while(|&c| c == '#')
-            .count()
-            <= 6
-        && trimmed
-            .chars()
-            .skip_while(|&c| c == '#')
-            .next()
-            == Some(' ');
+    let is_heading = detect_atx_heading_hashes(trimmed).is_some();
 
     let is_bullet = trimmed.starts_with("- ")
         || trimmed.starts_with("* ")
@@ -368,6 +375,22 @@ pub fn segment_document(sanitized: &str) -> Vec<Segment> {
             flush_prose(&mut prose_lines, &mut segments);
             block_lines.push(line);
             in_math = true;
+            continue;
+        }
+
+        if let Some(hash_count) = detect_atx_heading_hashes(line) {
+            flush_prose(&mut prose_lines, &mut segments);
+            let text = line.trim_end().to_string();
+            let word_count = count_words(&text);
+            let index = segments.len();
+            segments.push(Segment {
+                index,
+                kind: SegmentKind::VerbatimBlock {
+                    fence: "#".repeat(hash_count),
+                },
+                text,
+                word_count,
+            });
             continue;
         }
 
@@ -474,5 +497,28 @@ mod tests {
         let raw = "\x1b]8;;https://evil.com\x07Link\x1b]8;;\x07 and \x1b]0;Window Title\x1b\\End";
         let clean = sanitize_input(raw);
         assert_eq!(clean, "Link and End");
+    }
+
+    #[test]
+    fn markdown_atx_headings_become_verbatim_blocks_while_fenced_comments_stay_in_code() {
+        let doc = "# Main Title\n\n## 1. Introduction and Operational Context\n\nFirst prose paragraph.\n\n```python\n# Python comment inside code\nx = 1\n```\n\n### Subsection Without Blank\nSecond prose paragraph.\n\n####### Not a heading\n\n#hashtag without space";
+        let segs = segment_document(&sanitize_input(doc));
+        assert_eq!(segs.len(), 8);
+        assert!(matches!(segs[0].kind, SegmentKind::VerbatimBlock { ref fence } if fence == "#"));
+        assert_eq!(segs[0].text, "# Main Title");
+        assert!(matches!(segs[1].kind, SegmentKind::VerbatimBlock { ref fence } if fence == "##"));
+        assert_eq!(segs[1].text, "## 1. Introduction and Operational Context");
+        assert!(matches!(segs[2].kind, SegmentKind::Prose { .. }));
+        assert_eq!(segs[2].text, "First prose paragraph.");
+        assert!(matches!(segs[3].kind, SegmentKind::VerbatimBlock { ref fence } if fence == "```"));
+        assert!(segs[3].text.contains("# Python comment inside code"));
+        assert!(matches!(segs[4].kind, SegmentKind::VerbatimBlock { ref fence } if fence == "###"));
+        assert_eq!(segs[4].text, "### Subsection Without Blank");
+        assert!(matches!(segs[5].kind, SegmentKind::Prose { .. }));
+        assert_eq!(segs[5].text, "Second prose paragraph.");
+        assert!(matches!(segs[6].kind, SegmentKind::Prose { .. }));
+        assert_eq!(segs[6].text, "####### Not a heading");
+        assert!(matches!(segs[7].kind, SegmentKind::Prose { .. }));
+        assert_eq!(segs[7].text, "#hashtag without space");
     }
 }
